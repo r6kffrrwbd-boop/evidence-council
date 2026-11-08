@@ -63,6 +63,15 @@ def proposal_prompt(payload: dict[str, Any], lessons: list[dict[str, Any]] | Non
     ]
     if t.get("choices"):
         lines += ["CHOICES: " + json.dumps(t["choices"], ensure_ascii=False), ""]
+    if payload.get("premises"):
+        lines += ["PREMISES (labelled by the task author; do not treat NOT VERIFIED ones as facts):"]
+        for p in payload["premises"]:
+            if p["status"] == "observed":
+                lines.append(f"OBSERVED: {p['statement']}" + (f" (confirmed by: {p['basis']})" if p.get("basis") else ""))
+            else:
+                lines.append(f"NOT VERIFIED: {p['statement']}" + (f" (would be confirmed by: {p['basis']})" if p.get("basis") else ""))
+        lines += ["If your answer depends on a NOT VERIFIED premise, list it in \"assumptions\", and say so in \"uncertainties\" "
+                  "if it should be checked before acting.", ""]
     if payload.get("constraints"):
         lines += ["CONSTRAINTS:"] + [f"- {c}" for c in payload["constraints"]] + [""]
     if payload.get("rubric"):

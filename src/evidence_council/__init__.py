@@ -10,5 +10,5 @@ Stable entry points (Python):
 Stable entry point (shell): the ``evidence-council`` command; see ``evidence-council --help``.
 """
 
-__version__ = "0.1.0"
+__version__ = "0.2.0"
 CONTRACT_VERSION = "1.0"

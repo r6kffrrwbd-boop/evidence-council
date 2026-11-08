@@ -31,6 +31,12 @@ Python equivalents (stable): `evidence_council.council.run_review(input_doc, con
 | `lessons check FILE [--result R]` | acceptance checks, no write | result or lesson | check report | 0 pass, 6 rejected |
 | `lessons accept FILE [--result R]` | accept if all checks pass | result or lesson | report + `stored` | 0, 6 |
 | `lessons retire ID --reason TEXT` | append a retirement | — | `{retired, memory_version}` | 0, 2 |
+| `review TASK --async` | start the review as a background job | input | `{job_id, status, pid, job_dir, next}` | 0, 2, 5 |
+| `jobs list` | jobs, newest first | — | `{jobs: [...]}` | 0 |
+| `jobs status ID` | `running` (with `elapsed_s`), `completed`, `failed`, `cancelled` + `verdict_status`, `exit_code` | — | status JSON | 0, 2 |
+| `jobs result ID [--explain] [-o PATH]` | the result once finished (partial if cancelled) | — | result JSON or markdown | 0, 8 running, 2 unknown, job's code if failed |
+| `jobs cancel ID` | SIGINT → providers cancelled cleanly, partial result kept; SIGTERM after 10 s | — | `{cancel_requested, stopped}` | 0, 2 |
+| `jobs remove ID` | delete a finished job's directory | — | `{removed}` | 0, 2 |
 | `selftest` | offline mock council must overturn a wrong majority | — | PASS/FAIL lines | 0, 1 |
 | `codes` | exit-code table | — | JSON | 0 |
 
@@ -61,3 +67,9 @@ Python equivalents (stable): `evidence_council.council.run_review(input_doc, con
 | `refusing to start a council from inside a council provider call` | you are in a nested run; don't |
 | `lesson rejected; failed checks: …` | each failed check's `detail` explains it; nothing was stored |
 | `lesson memory integrity check failed` | the append-only log was edited; restore it or move it aside |
+| `job … is still running` (exit 8) | fetch again later; `jobs status` shows elapsed time |
+| `no such job` / `not a job id` | `evidence-council jobs list` (jobs live under `--home`) |
+
+Jobs are stored in `<home>/jobs/<job-id>/` (owner-only permissions) with `task.json` (a copy of
+your input — same sensitivity), `meta.json`, `log.txt`, `result.json`, `status.json`. Remove finished
+jobs with `jobs remove`.

@@ -16,6 +16,7 @@ from .contract import require_valid, with_defaults
 from .errors import CouncilError, EXIT_INTERNAL, EXIT_RECURSION, EXIT_STAGE, EXIT_USAGE
 from .lessons import LessonStore, make_candidate
 from .parsing import candidate_to_proposal, extract_json_object, parse_proposal
+from .premises import apply_to_verdict, check_premises
 from .privacy import build_payload, findings, plan_route, redact_for
 from .prompts import judge_prompt, proposal_prompt
 from .providers import RECURSION_ENV, Adapter, CancelToken, build_adapters, select_adapters
@@ -173,6 +174,7 @@ def stage_verification(state: dict) -> dict:
     _require(state, "comparison")
     state["verification"] = run_verification(state["input"], state["proposals"], state["options"])
     state["claims"] = annotate_claims(state["claims"], state["verification"]["checks"])
+    state["premises"] = check_premises(state["input"])
     _mark(state, "verification")
     return state
 
@@ -224,6 +226,7 @@ def stage_verdict(state: dict, config: Config, cancel: CancelToken | None = None
     state["judgments"] = _run_judges(state, config, cancel or CancelToken())
     verdict, uncertainty = decide(state["input"], state["proposals"], state["options"], state["verification"],
                                   state["claims"], state["judgments"], len(state["providers"]["used"]))
+    apply_to_verdict(state.get("premises", []), verdict, uncertainty)
     state["verdict"], state["uncertainty"] = verdict, uncertainty
     _mark(state, "verdict")
     state["candidate_lesson"] = make_candidate(state)

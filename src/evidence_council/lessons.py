@@ -43,6 +43,8 @@ def make_candidate(result: dict) -> dict | None:
     v = result.get("verdict") or {}
     if v.get("status") != "supported":
         return None
+    if any(p.get("status") == "contradicted_by_evidence" for p in result.get("premises", [])):
+        return None  # the task's own framing was wrong; nothing reusable was verified
     t = inp["task"]
     opts = {o["option_id"]: o for o in result.get("options", [])}
     sel = opts[v["selected_option"]]

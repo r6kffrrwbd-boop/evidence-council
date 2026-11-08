@@ -39,6 +39,11 @@ def reading(result: dict) -> dict[str, Any]:
         must_not.append("Do not declare an objective winner; report the rubric and the judges' scores as opinions.")
     if any(adapters.get(p) == "mock" for p in used):
         must_not.append("Mock providers are test fixtures: do not describe this as a real multi-model run.")
+    prem = result.get("premises", [])
+    if any(p["status"] == "not_verified" for p in prem):
+        must_not.append("Do not state NOT VERIFIED premises as facts.")
+    if any(p["status"] == "contradicted_by_evidence" for p in prem):
+        must_not.append("Tell the user the task's own premise was contradicted by evidence before giving any answer.")
     if v.get("vote_note"):
         must_not.append("Do not describe the result as a vote; agreement was not used to select.")
     r = {
@@ -56,6 +61,7 @@ def reading(result: dict) -> dict[str, Any]:
         "why": v.get("rationale", []),
         "rejected": [f"option {r['option_id']} ({r['answer'][:80]}): " + "; ".join(r["reasons"])[:400] for r in v.get("rejected", [])],
         "unverified": v.get("unverified", [])[:10],
+        "premises": [f"{p['id']}: {p['status']} - {p['statement'][:120]}" + (f" ({p['detail']})" if p.get("detail") else "") for p in prem],
         "uncertainty": result.get("uncertainty"),
         "candidate_lesson": (result.get("candidate_lesson") or {}).get("lesson_id"),
         "must_not_claim": must_not,
@@ -83,6 +89,8 @@ def render_markdown(result: dict) -> str:
         out += ["", "**Why:**"] + [f"- {w}" for w in r["why"]]
     if r["rejected"]:
         out += ["", "**Rejected:**"] + [f"- {x}" for x in r["rejected"]]
+    if r["premises"]:
+        out += ["", "**Premises:**"] + [f"- {x}" for x in r["premises"]]
     if r["unverified"]:
         out += ["", "**Still unverified:**"] + [f"- {x}" for x in r["unverified"]]
     u = r["uncertainty"] or {}

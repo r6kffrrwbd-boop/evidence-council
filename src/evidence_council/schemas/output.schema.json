@@ -75,6 +75,19 @@
     },
     "candidate_lesson": { "type": ["object", "null"] },
     "relevant_lessons": { "type": "array", "items": { "type": "object" } },
+    "premises": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "statement", "declared", "status"],
+        "properties": {
+          "id": { "type": "string" }, "statement": { "type": "string" },
+          "declared": { "enum": ["observed", "not_verified"] },
+          "status": { "enum": ["observed", "not_verified", "confirmed_by_evidence", "contradicted_by_evidence"] },
+          "basis": { "type": "string" }, "detail": { "type": "string" }
+        }
+      }
+    },
     "warnings": { "type": "array", "items": { "type": "string" } }
   },
   "$defs": {

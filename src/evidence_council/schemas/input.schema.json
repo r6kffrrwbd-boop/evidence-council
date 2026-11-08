@@ -34,6 +34,24 @@
       "items": { "$ref": "#/$defs/evidence" }
     },
     "constraints": { "type": "array", "items": { "type": "string", "maxLength": 2000 }, "maxItems": 100 },
+    "premises": {
+      "description": "Load-bearing facts the task relies on, labelled observed (with how it was confirmed) or not_verified (with what would confirm it). Sent to providers as OBSERVED: / NOT VERIFIED:. A premise with fact_key+value is also checked against evidence facts.",
+      "type": "array",
+      "maxItems": 50,
+      "items": {
+        "type": "object",
+        "required": ["statement", "status"],
+        "additionalProperties": false,
+        "properties": {
+          "id": { "type": "string", "pattern": "^[A-Za-z0-9_.:-]{1,80}$" },
+          "statement": { "type": "string", "minLength": 1, "maxLength": 2000 },
+          "status": { "enum": ["observed", "not_verified"] },
+          "basis": { "type": "string", "maxLength": 1000, "description": "observed: how it was confirmed. not_verified: what would confirm it." },
+          "fact_key": { "type": "string", "pattern": "^[A-Za-z0-9_.-]{1,80}$" },
+          "value": { "type": ["string", "number", "boolean"] }
+        }
+      }
+    },
     "candidates": {
       "description": "Pre-existing drafts to review alongside (or instead of) provider proposals, e.g. draft coaching notes from another program.",
       "type": "array",

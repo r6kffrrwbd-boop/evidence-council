@@ -39,6 +39,24 @@ EPILOGS = {
           evidence-council review task.json --local-only --output result.json
           evidence-council review coaching.json --providers none -o result.json   # review input candidates only
           evidence-council review task.json -o result.json && evidence-council explain result.json
+          evidence-council review task.json --async        # returns a job id immediately
+        """,
+    "jobs": """
+        Background reviews started with `review --async`. Jobs live in <home>/jobs/<job-id>/
+        (task copy, log, result) with owner-only permissions.
+
+        `result` prints the result JSON (or --explain for the plain-language reading) when the
+        job is done; exit 8 while it is still running. `cancel` stops provider calls cleanly and
+        keeps a partial result. `remove` deletes a finished job's directory.
+
+        examples:
+          evidence-council review task.json --async
+          evidence-council jobs list
+          evidence-council jobs status job-20261108T201500Z-1a2b3c4d
+          evidence-council jobs result job-20261108T201500Z-1a2b3c4d --explain
+          evidence-council jobs result job-20261108T201500Z-1a2b3c4d -o result.json
+          evidence-council jobs cancel job-20261108T201500Z-1a2b3c4d
+          evidence-council jobs remove job-20261108T201500Z-1a2b3c4d
         """,
     "propose": """
         Stage 1 only: ask the selected providers independently (none sees another's answer).
@@ -169,6 +187,7 @@ def build_parser() -> argparse.ArgumentParser:
               validate   check a file against the JSON contract
               schema     print the input/output/lesson JSON Schema
               lessons    list / check / accept / retire learned lessons
+              jobs       background reviews (review --async): list / status / result / cancel / remove
               selftest   offline end-to-end check with mock providers
               codes      list exit codes
 
@@ -192,6 +211,8 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument("task", help="task input JSON (or '-' for stdin)")
     p.add_argument("--output", "-o", metavar="PATH", help="write result JSON here (default: stdout)")
     p.add_argument("--markdown", action="store_true", help="also print the plain-language explanation to stderr")
+    p.add_argument("--async", dest="run_async", action="store_true",
+                   help="run in the background and print a job id at once (see `evidence-council jobs --help`)")
     _provider_opts(p)
 
     p = add("propose", "Stage: collect independent proposals.")
@@ -241,6 +262,18 @@ def build_parser() -> argparse.ArgumentParser:
     lr.add_argument("lesson_id")
     lr.add_argument("--reason", required=True)
 
+    p = add("jobs", "Manage background reviews started with --async.")
+    jsub = p.add_subparsers(dest="jobs_cmd", metavar="ACTION")
+    jl = jsub.add_parser("list", help="list jobs, newest first"); _common(jl)
+    for name, h in (("status", "show one job's status"), ("cancel", "cancel a running job (keeps a partial result)"),
+                    ("remove", "delete a finished job's directory")):
+        jp = jsub.add_parser(name, help=h); _common(jp)
+        jp.add_argument("job_id")
+    jr = jsub.add_parser("result", help="print a finished job's result (exit 8 while running)"); _common(jr)
+    jr.add_argument("job_id")
+    jr.add_argument("--explain", action="store_true", help="print the plain-language reading instead of JSON")
+    jr.add_argument("--output", "-o", metavar="PATH", help="copy the result JSON here")
+
     add("selftest", "Offline self-test with mock providers.")
     add("codes", "List exit codes.")
     return ap
@@ -284,10 +317,21 @@ def _min_participants(result: dict, cfg) -> int:
 
 
 def cmd_review(args) -> int:
-    from .council import run_review
+    from .council import guard_recursion, run_review
     from .explain import render_markdown
     cfg = _cfg(args)
     doc = read_json(args.task)
+    if args.run_async:
+        from . import jobs
+        from .contract import require_valid, with_defaults
+        guard_recursion()
+        require_valid(doc, "input", "task input")
+        with_defaults(doc)  # surface duplicate-id errors now, not in the background
+        info = jobs.submit(doc, home=cfg.home, config_path=args.config, providers=_requested(args),
+                           local_only=args.local_only, allow_private_to=list(args.allow_private_to or []))
+        write_json(info, None)
+        print(f"[evidence-council] started {info['job_id']}; fetch with: {info['next']}", file=sys.stderr)
+        return EXIT_OK
     res = run_review(doc, cfg, requested=_requested(args), local_only=args.local_only, cancel=_cancel_token(), verbose=args.verbose)
     write_json(res, args.output)
     if args.output:
@@ -495,6 +539,48 @@ def cmd_selftest(args) -> int:
     return EXIT_OK if ok else EXIT_INTERNAL
 
 
+def cmd_jobs(args) -> int:
+    from . import jobs
+    from .errors import EXIT_PENDING
+    from .explain import render_markdown
+    cfg = _cfg(args)
+    c = args.jobs_cmd
+    if c is None:
+        raise CouncilError("missing jobs action", hint="Use one of: list, status, result, cancel, remove (see `evidence-council jobs --help`).")
+    if c == "list":
+        write_json({"jobs": jobs.list_jobs(cfg.home)}, None)
+        return EXIT_OK
+    if c == "status":
+        write_json(jobs.status(cfg.home, args.job_id), None)
+        return EXIT_OK
+    if c == "cancel":
+        write_json(jobs.cancel(cfg.home, args.job_id), None)
+        return EXIT_OK
+    if c == "remove":
+        write_json(jobs.remove(cfg.home, args.job_id), None)
+        return EXIT_OK
+    st = jobs.status(cfg.home, args.job_id)
+    if st["status"] == jobs.RUNNING:
+        print(f"error: job {args.job_id} is still running ({st.get('elapsed_s', '?')}s elapsed)\n"
+              f"hint: try again later: evidence-council jobs result {args.job_id}", file=sys.stderr)
+        return EXIT_PENDING
+    if not st.get("result"):
+        tail = jobs.log_tail(cfg.home, args.job_id)
+        raise CouncilError(f"job {args.job_id} {st['status']} without a result: {st.get('error', '')}",
+                           hint="Log tail:\n" + tail if tail else "Re-run the review in the foreground to see the error.",
+                           exit_code=st.get("exit_code") or EXIT_INTERNAL)
+    res = read_json(st["result"])
+    if st["status"] == jobs.CANCELLED:
+        print(f"[evidence-council] job {args.job_id} was cancelled; this is a partial result", file=sys.stderr)
+    if args.output:
+        write_json(res, args.output)
+    if args.explain:
+        sys.stdout.write(render_markdown(res))
+    elif not args.output:
+        write_json(res, None)
+    return EXIT_OK
+
+
 def cmd_codes(args) -> int:
     write_json({str(k): v for k, v in EXIT_CODES.items()}, None)
     return EXIT_OK
@@ -502,10 +588,15 @@ def cmd_codes(args) -> int:
 
 COMMANDS = {"review": cmd_review, "propose": cmd_stage, "compare": cmd_stage, "verify": cmd_stage, "verdict": cmd_stage,
             "explain": cmd_explain, "providers": cmd_providers, "privacy": cmd_privacy, "validate": cmd_validate,
-            "schema": cmd_schema, "lessons": cmd_lessons, "selftest": cmd_selftest, "codes": cmd_codes}
+            "schema": cmd_schema, "lessons": cmd_lessons, "selftest": cmd_selftest, "codes": cmd_codes,
+            "jobs": cmd_jobs}
 
 
 def main(argv: list[str] | None = None) -> int:
+    argv = sys.argv[1:] if argv is None else argv
+    if len(argv) == 2 and argv[0] == "_run-job":  # internal: detached runner for `review --async`
+        from . import jobs
+        return jobs.run_job(argv[1])
     ap = build_parser()
     args = ap.parse_args(argv)
     if not args.tool:

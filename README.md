@@ -44,6 +44,8 @@ evidence-council review task.json --output result.json
 evidence-council explain result.json               # plain-language reading
 evidence-council review task.json --local-only -o result.json
 evidence-council privacy task.json --show-payload codex   # exactly what a provider would receive
+evidence-council review task.json --async          # background job; prints a job id
+evidence-council jobs result JOB_ID --explain      # fetch it later (exit 8 while running)
 ```
 
 In Claude Code, invoke the skill directly (`/evidence-council …`) or ask for "the evidence council".
@@ -83,7 +85,8 @@ Files in `examples/outputs/` were produced with **mock** providers; real runs ar
 ## JSON contract
 
 Stable, versioned (`schema_version: "1.0"`), shipped as JSON Schema: `evidence-council schema input|output|lesson`.
-Input: task, evidence (with timestamps, source refs, facts), constraints, candidates, checks, rubric,
+Input: task, evidence (with timestamps, source refs, facts), constraints, premises labelled
+OBSERVED / NOT VERIFIED (checked against evidence where they name a fact), candidates, checks, rubric,
 privacy level, requested providers. Output: providers actually used, every attempt with status/tokens/cost,
 privacy routing, proposals, options, disagreements, checked claims, verification results, verdict,
 uncertainty, candidate lesson. Details: [docs/contract.md](docs/contract.md).

@@ -11,7 +11,7 @@ import pytest
 
 from conftest import ROOT, mock, run_cli, task, write
 
-TOOLS = ["review", "propose", "compare", "verify", "verdict", "explain", "providers", "privacy", "validate", "schema", "lessons", "selftest", "codes"]
+TOOLS = ["review", "propose", "compare", "verify", "verdict", "explain", "providers", "privacy", "validate", "schema", "lessons", "jobs", "selftest", "codes"]
 SKILL = (ROOT / "skill" / "SKILL.md").read_text()
 
 
@@ -137,4 +137,4 @@ def test_selftest_tool():
 def test_codes_tool():
     rc, out, _ = run_cli("codes")
     codes = json.loads(out)
-    assert set(codes) >= {"0", "2", "3", "4", "5", "6", "7"}
+    assert set(codes) >= {"0", "2", "3", "4", "5", "6", "7", "8"}

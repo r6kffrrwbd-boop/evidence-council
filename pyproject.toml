@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "evidence-council"
-version = "0.1.0"
+version = "0.2.0"
 description = "Compare independent AI proposals, verify their claims against objective evidence, and return a justified verdict."
 readme = "README.md"
 license = { text = "MIT" }

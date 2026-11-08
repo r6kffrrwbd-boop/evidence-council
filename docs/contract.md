@@ -32,6 +32,11 @@ Three documents, each with a JSON Schema shipped in the package:
      "sensitive": false, "facts": [{"key": "first_error_utc", "value": "14:32"}]}
   ],
   "constraints": ["Standard library only."],
+  "premises": [
+    {"id": "scale", "statement": "The service runs as one replica", "status": "observed", "basis": "read deploy.yaml",
+     "fact_key": "replicas", "value": 1},
+    {"statement": "Write volume stays under 50/s", "status": "not_verified", "basis": "a week of production metrics"}
+  ],
   "candidates": [{"id": "draft-1", "label": "...", "answer": "...", "claims": [ ... ]}],
   "checks": [{"id": "first-error", "type": "fact_answer", "fact_key": "first_error_utc"}],
   "rubric": [{"criterion": "clarity", "weight": 1, "description": "..."}],
@@ -51,6 +56,19 @@ Three documents, each with a JSON Schema shipped in the package:
 with `sensitive: true` are withheld from cloud providers unless the operator allowlists one.
 `timestamp` is an offset inside a source (e.g. `00:07:15.5`) or an ISO instant; `source_ref` says where
 the item came from (`call-0193#t=435.5`, `file.py:42`, a URL).
+
+### Premises
+
+Load-bearing facts the task relies on, each declared `observed` (with `basis`: how it was confirmed)
+or `not_verified` (with `basis`: what would confirm it). Providers receive them as `OBSERVED: …` /
+`NOT VERIFIED: …` lines, because a provider told "I have not checked X" can answer "check X first",
+and one told "X holds" never will. Premises are redacted like the rest of the payload.
+
+A premise with `fact_key` and `value` is checked against evidence facts during verification:
+`confirmed_by_evidence` or `contradicted_by_evidence`. A contradicted premise means the task's own
+framing is wrong: it is put first in `verdict.rationale`, uncertainty becomes `high`, and no candidate
+lesson is proposed. Premises still `not_verified` are listed in `verdict.unverified`. Output:
+`premises[]` = `{id, statement, declared, status, basis, detail}`.
 
 ### Claims
 
@@ -106,6 +124,7 @@ Top-level fields (all present after `review`):
 | `uncertainty` | `{level: low/medium/high, reasons[]}` |
 | `candidate_lesson` | a lesson document or `null` |
 | `relevant_lessons[]` | accepted lessons given to proposers as context |
+| `premises[]` | each input premise with its checked `status` (see Premises) |
 | `warnings[]` | e.g. fewer than two providers, cancelled run |
 
 ## Verdict

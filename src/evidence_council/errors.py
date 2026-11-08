@@ -15,6 +15,7 @@ EXIT_PRIVACY = 4        # privacy policy blocked the request
 EXIT_RECURSION = 5      # called from inside a council run
 EXIT_LESSON_REJECTED = 6  # candidate lesson failed acceptance checks
 EXIT_STAGE = 7          # stage tool given a state missing a prerequisite stage
+EXIT_PENDING = 8        # background job still running
 
 EXIT_CODES = {
     EXIT_OK: "ok",
@@ -25,6 +26,7 @@ EXIT_CODES = {
     EXIT_RECURSION: "recursive council call refused",
     EXIT_LESSON_REJECTED: "candidate lesson rejected by acceptance checks",
     EXIT_STAGE: "missing prerequisite stage",
+    EXIT_PENDING: "background job still running",
 }
 
 

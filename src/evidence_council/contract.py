@@ -75,6 +75,7 @@ def with_defaults(input_doc: dict) -> dict:
     d.setdefault("evidence", [])
     d.setdefault("constraints", [])
     d.setdefault("candidates", [])
+    d.setdefault("premises", [])
     d.setdefault("checks", [])
     d.setdefault("rubric", [])
     p = d.setdefault("privacy", {})

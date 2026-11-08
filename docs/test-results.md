@@ -5,7 +5,7 @@ should be taken on trust.
 
 ## 1. Deterministic suite (MOCK providers, offline)
 
-`pytest` → **102 passed** (real-provider test deselected by default).
+`pytest` → **112 passed** (real-provider test deselected by default).
 
 | File | Tests | Covers |
 |---|---|---|
@@ -16,7 +16,9 @@ should be taken on trust.
 | `tests/test_privacy.py` | 9 | private default excludes cloud; recordings never forwarded (even locally); `restricted` not overridable; `--local-only`; operator allowlist still redacts; transcripts withheld from cloud; secrets redacted for all; `privacy` dry-run and `--show-payload`; exit 4 |
 | `tests/test_lessons.py` | 14 | candidate only from verified outcomes; accept → versioned memory; rejections (tampered verdict, injection text, PII, no selecting check, model-judgment evidence, restricted, length, missing provenance); conflict until retired; tamper detection; CLI flow writes only `memory/lessons.jsonl` and leaves `CLAUDE.md` untouched; lessons are context, never a substitute for a check |
 | `tests/test_overturn.py` | 5 | **popular wrong answer overturned** by recomputation (CLI), by unit tests (sandboxed), and by log evidence; fabricated citations caught; regression for the false overturn found in a real run |
-| `tests/test_cli_tools.py` | 25 | every tool has `--help` with examples; SKILL.md documents every tool, its reference links resolve, and every command in it parses; `explain --json` interpretation of supported vs insufficient results; staged pipeline equals `review`; stage-order and JSON error formats; recursion guard (exit 5); `providers`, `selftest`, `codes` |
+| `tests/test_cli_tools.py` | 26 | every tool has `--help` with examples; SKILL.md documents every tool, its reference links resolve, and every command in it parses; `explain --json` interpretation of supported vs insufficient results; staged pipeline equals `review`; stage-order and JSON error formats; recursion guard (exit 5); `providers`, `selftest`, `codes` |
+| `tests/test_premises.py` | 5 | OBSERVED / NOT VERIFIED labels reach providers (redacted); not-verified premises listed as unverified and raise uncertainty; premise confirmed or contradicted by an evidence fact; contradiction puts the framing error first, sets high uncertainty and blocks the lesson; schema and `explain` output |
+| `tests/test_jobs.py` | 4 | `review --async` returns at once with a job id; `jobs result` exits 8 while running, then returns the result (JSON, `--explain`, `-o`); job dir is owner-only; cancel stops providers and keeps a partial result; remove; path-traversal ids rejected; invalid input and nested calls refused before a job starts |
 | `tests/test_subjective_and_safety.py` | 12 | subjective task → no winner, judges never score their own proposal; safe arithmetic evaluator accepts arithmetic and rejects code; macOS sandbox blocks network and home reads; sandbox timeout |
 
 `evidence-council selftest` (also run by `install.sh`): 9/9 PASS — offline mock council overturns a

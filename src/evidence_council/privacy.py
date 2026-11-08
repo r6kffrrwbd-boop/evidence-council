@@ -184,6 +184,8 @@ def build_payload(input_doc: dict, route: Route) -> dict[str, Any]:
             "choices": [red(c) for c in t.get("choices", [])],
         },
         "constraints": [red(c) for c in input_doc.get("constraints", [])],
+        "premises": [{"status": p["status"], "statement": red(p["statement"]), "basis": red(p.get("basis", ""))}
+                     for p in input_doc.get("premises", [])],
         "rubric": copy.deepcopy(input_doc.get("rubric", [])),
         "evidence": [],
         "withheld_evidence": [],
