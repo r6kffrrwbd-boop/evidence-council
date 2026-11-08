@@ -1,0 +1,35 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+build/
+dist/
+.venv/
+venv/
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Local state — never commit
+.env
+.env.*
+*.key
+*.pem
+config.local.json
+memory/
+.evidence-council/
+results/
+*.result.json
+!examples/outputs/*.json
+
+# Raw media and transcripts must never be committed
+*.wav
+*.mp3
+*.m4a
+*.flac
+*.ogg
+
+# OS / editor
+.DS_Store
+.idea/
+.vscode/

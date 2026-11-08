@@ -1,0 +1,33 @@
+{
+  "schema_version": "1.0",
+  "task": {
+    "id": "leap-year",
+    "title": "Gregorian leap-year function",
+    "prompt": "Write a Python module defining is_leap(year: int) -> bool for the Gregorian calendar.",
+    "domain": "coding",
+    "answer_format": "code",
+    "tags": [
+      "python",
+      "dates"
+    ]
+  },
+  "constraints": [
+    "Standard library only.",
+    "Pure function; no I/O."
+  ],
+  "checks": [
+    {
+      "id": "unit-tests",
+      "type": "python_tests",
+      "module_name": "solution",
+      "timeout_s": 20,
+      "test_code": "from solution import is_leap\nassert is_leap(2024)\nassert not is_leap(2023)\nassert not is_leap(1900), '1900 is not a leap year'\nassert is_leap(2000)\nassert not is_leap(2100)\nprint('5 tests passed')\n"
+    }
+  ],
+  "privacy": {
+    "level": "internal"
+  },
+  "options": {
+    "allow_code_execution": true
+  }
+}

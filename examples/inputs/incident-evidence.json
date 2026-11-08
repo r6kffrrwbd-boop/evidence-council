@@ -1,0 +1,49 @@
+{
+  "schema_version": "1.0",
+  "task": {
+    "id": "incident-2026-11-02",
+    "title": "When did the outage start?",
+    "prompt": "Using only the evidence, when (UTC, HH:MM) did user-facing errors start?",
+    "domain": "research",
+    "answer_format": "text",
+    "tags": [
+      "incident",
+      "logs"
+    ],
+    "answer_extract": "\\b(\\d{2}:\\d{2})\\b"
+  },
+  "evidence": [
+    {
+      "id": "status-page",
+      "kind": "web",
+      "title": "Public status page",
+      "content": "Investigating degraded performance from 14:00 UTC.",
+      "recorded_at": "2026-11-02T15:05:00Z",
+      "source_ref": "https://status.example.com/incidents/42"
+    },
+    {
+      "id": "lb-log",
+      "kind": "log",
+      "title": "Load balancer access log",
+      "content": "14:31:59 GET /api 200\n14:32:04 GET /api 502 (first 5xx)\n14:32:05 GET /api 502",
+      "source_ref": "lb-01/access.log:11802",
+      "facts": [
+        {
+          "key": "first_error_utc",
+          "value": "14:32"
+        }
+      ]
+    }
+  ],
+  "checks": [
+    {
+      "id": "first-error",
+      "type": "fact_answer",
+      "fact_key": "first_error_utc",
+      "description": "The first 5xx in the load balancer log is the ground truth."
+    }
+  ],
+  "privacy": {
+    "level": "internal"
+  }
+}

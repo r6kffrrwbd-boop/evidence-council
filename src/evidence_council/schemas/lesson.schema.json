@@ -1,0 +1,53 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/evidence-council/schemas/lesson-1.0.json",
+  "title": "evidence-council candidate lesson",
+  "description": "A reusable lesson proposed from a verified outcome. Candidates are never applied automatically; `evidence-council lessons accept` must pass every acceptance check first.",
+  "type": "object",
+  "required": ["schema_version", "lesson_id", "status", "kind", "statement", "subject_key", "domain", "tags", "source", "evidence", "created_at"],
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": { "const": "1.0" },
+    "lesson_id": { "type": "string", "pattern": "^lesson-[0-9a-f]{16}$" },
+    "status": { "enum": ["candidate", "accepted", "retired"] },
+    "kind": { "enum": ["verified_outcome", "provider_reliability"] },
+    "statement": { "type": "string", "minLength": 1, "maxLength": 2000 },
+    "subject_key": { "type": "string", "maxLength": 200, "description": "Stable key for conflict detection: two accepted lessons with the same subject_key must agree." },
+    "verified_answer": { "type": ["string", "null"] },
+    "domain": { "type": "string" },
+    "tags": { "type": "array", "items": { "type": "string" } },
+    "source": {
+      "type": "object",
+      "required": ["run_id", "task_digest", "verdict_status", "privacy_level"],
+      "properties": {
+        "run_id": { "type": "string" },
+        "task_id": { "type": ["string", "null"] },
+        "task_digest": { "type": "string" },
+        "verdict_status": { "type": "string" },
+        "privacy_level": { "type": "string" }
+      }
+    },
+    "evidence": {
+      "type": "object",
+      "required": ["checks"],
+      "properties": {
+        "checks": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["check_id", "type", "status", "ran", "decisive"],
+            "properties": {
+              "check_id": { "type": "string" }, "type": { "type": "string" }, "status": { "type": "string" },
+              "ran": { "type": "boolean" }, "decisive": { "type": "boolean" }, "can_select": { "type": "boolean" }, "target_option": { "type": ["string", "null"] }
+            }
+          }
+        },
+        "rejected_answers": { "type": "array", "items": { "type": "string" } },
+        "providers_correct": { "type": "array", "items": { "type": "string" } },
+        "providers_incorrect": { "type": "array", "items": { "type": "string" } }
+      }
+    },
+    "created_at": { "type": "string" },
+    "acceptance": { "type": ["object", "null"] }
+  }
+}

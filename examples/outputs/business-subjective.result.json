@@ -1,0 +1,334 @@
+{
+  "schema_version": "1.0",
+  "tool_version": "0.1.0",
+  "run_id": "run-20261108T171622Z-1e3f6eb9",
+  "created_at": "2026-11-08T17:16:22Z",
+  "stages_completed": [
+    "input",
+    "proposals",
+    "comparison",
+    "verification",
+    "verdict",
+    "learning"
+  ],
+  "input": {
+    "schema_version": "1.0",
+    "task": {
+      "id": "renewal-email",
+      "title": "Renewal email opening",
+      "prompt": "Write the first two sentences of a renewal reminder email for a small-business customer whose contract ends in 30 days.",
+      "domain": "business",
+      "kind": "subjective",
+      "answer_format": "text",
+      "tags": [
+        "writing",
+        "renewals"
+      ]
+    },
+    "rubric": [
+      {
+        "criterion": "clarity",
+        "weight": 1,
+        "description": "States the renewal date and next step plainly."
+      },
+      {
+        "criterion": "tone",
+        "weight": 1,
+        "description": "Warm, not pushy."
+      }
+    ],
+    "privacy": {
+      "level": "internal",
+      "local_only": false,
+      "redact": true
+    },
+    "evidence": [],
+    "constraints": [],
+    "candidates": [],
+    "checks": [],
+    "providers": {
+      "requested": [],
+      "exclude": [],
+      "judges": []
+    },
+    "options": {
+      "allow_code_execution": false,
+      "create_lesson": true,
+      "use_lessons": true
+    }
+  },
+  "task_digest": "sha256:c1159d32fb68464746425445dcaf6f1176134e66a657f139c8315bfb768d3c86",
+  "providers": {
+    "requested": [],
+    "used": [
+      "mock-writer-1",
+      "mock-writer-2"
+    ],
+    "attempted": [
+      {
+        "provider": "mock-writer-1",
+        "adapter": "mock",
+        "locality": "local",
+        "status": "ok",
+        "attempts": 1,
+        "duration_s": 0.0,
+        "tokens": {
+          "total": 0
+        },
+        "cost_usd": 0.0,
+        "cost_note": "mock",
+        "role": "proposer"
+      },
+      {
+        "provider": "mock-writer-2",
+        "adapter": "mock",
+        "locality": "local",
+        "status": "ok",
+        "attempts": 1,
+        "duration_s": 0.0,
+        "tokens": {
+          "total": 0
+        },
+        "cost_usd": 0.0,
+        "cost_note": "mock",
+        "role": "proposer"
+      },
+      {
+        "provider": "mock-writer-1",
+        "adapter": "mock",
+        "locality": "local",
+        "status": "ok",
+        "attempts": 1,
+        "duration_s": 0.0,
+        "tokens": {
+          "total": 0
+        },
+        "cost_usd": 0.0,
+        "cost_note": "mock",
+        "role": "judge"
+      },
+      {
+        "provider": "mock-writer-2",
+        "adapter": "mock",
+        "locality": "local",
+        "status": "ok",
+        "attempts": 1,
+        "duration_s": 0.0,
+        "tokens": {
+          "total": 0
+        },
+        "cost_usd": 0.0,
+        "cost_note": "mock",
+        "role": "judge"
+      }
+    ],
+    "excluded": []
+  },
+  "privacy": {
+    "level": "internal",
+    "local_only": false,
+    "routing": [
+      {
+        "provider": "mock-writer-1",
+        "locality": "local",
+        "allowed": true,
+        "reason": "local provider: data stays on this machine",
+        "included_evidence": [],
+        "excluded_evidence": [],
+        "redactions": {}
+      },
+      {
+        "provider": "mock-writer-2",
+        "locality": "local",
+        "allowed": true,
+        "reason": "local provider: data stays on this machine",
+        "included_evidence": [],
+        "excluded_evidence": [],
+        "redactions": {}
+      }
+    ],
+    "findings": {
+      "pii_counts": {
+        "phone": 0,
+        "email": 0,
+        "card": 0,
+        "secret": 0
+      },
+      "never_forward_evidence": [],
+      "sensitive_evidence": []
+    }
+  },
+  "proposals": [
+    {
+      "id": "p1",
+      "source": "provider",
+      "origin": "mock-writer-1",
+      "answer": "Your plan renews on 8 December. Reply to this email or click Renew to keep your rates.",
+      "normalized_answer": "your plan renews on 8 december. reply to this email or click renew to keep your rates",
+      "summary": "Direct",
+      "assumptions": [],
+      "claims": [],
+      "tradeoffs": [],
+      "uncertainties": [],
+      "self_confidence": 0.6,
+      "parse": "json",
+      "untrusted": true,
+      "adapter": "mock"
+    },
+    {
+      "id": "p2",
+      "source": "provider",
+      "origin": "mock-writer-2",
+      "answer": "It has been a pleasure working with you this year! Your contract is coming up for renewal next month.",
+      "normalized_answer": "it has been a pleasure working with you this year! your contract is coming up for renewal next month",
+      "summary": "Warm",
+      "assumptions": [],
+      "claims": [],
+      "tradeoffs": [],
+      "uncertainties": [],
+      "self_confidence": 0.6,
+      "parse": "json",
+      "untrusted": true,
+      "adapter": "mock"
+    }
+  ],
+  "relevant_lessons": [],
+  "warnings": [],
+  "options": [
+    {
+      "option_id": "A",
+      "normalized_answer": "your plan renews on 8 december. reply to this email or click renew to keep your rates",
+      "display_answer": "Your plan renews on 8 December. Reply to this email or click Renew to keep your rates.",
+      "proposals": [
+        "p1"
+      ],
+      "origins": [
+        "mock-writer-1"
+      ],
+      "support_count": 1
+    },
+    {
+      "option_id": "B",
+      "normalized_answer": "it has been a pleasure working with you this year! your contract is coming up for renewal next month",
+      "display_answer": "It has been a pleasure working with you this year! Your contract is coming up for renewal next month.",
+      "proposals": [
+        "p2"
+      ],
+      "origins": [
+        "mock-writer-2"
+      ],
+      "support_count": 1
+    }
+  ],
+  "disagreements": [
+    {
+      "type": "answer",
+      "topic": "final answer",
+      "positions": [
+        {
+          "option_id": "A",
+          "answer": "Your plan renews on 8 December. Reply to this email or click Renew to keep your rates.",
+          "held_by": [
+            "mock-writer-1"
+          ]
+        },
+        {
+          "option_id": "B",
+          "answer": "It has been a pleasure working with you this year! Your contract is coming up for renewal next month.",
+          "held_by": [
+            "mock-writer-2"
+          ]
+        }
+      ]
+    }
+  ],
+  "claims": [],
+  "verification": {
+    "checks": [],
+    "summary": {
+      "run": 0,
+      "passed": 0,
+      "failed": 0,
+      "errored": 0,
+      "not_run": 0
+    },
+    "note": "no objective checks were defined and no evidence was supplied; nothing could be verified",
+    "defined_checks": []
+  },
+  "judgments": [
+    {
+      "judge": "mock-writer-1",
+      "proposal_id": "p2",
+      "criterion": "clarity",
+      "score": 3.0,
+      "reason": "date implied, not stated"
+    },
+    {
+      "judge": "mock-writer-1",
+      "proposal_id": "p2",
+      "criterion": "tone",
+      "score": 5.0,
+      "reason": "warm"
+    },
+    {
+      "judge": "mock-writer-2",
+      "proposal_id": "p1",
+      "criterion": "clarity",
+      "score": 5.0,
+      "reason": "date and action explicit"
+    },
+    {
+      "judge": "mock-writer-2",
+      "proposal_id": "p1",
+      "criterion": "tone",
+      "score": 3.0,
+      "reason": "a bit transactional"
+    }
+  ],
+  "verdict": {
+    "selected_option": null,
+    "selected_answer": null,
+    "selected_proposals": [],
+    "also_supported": [],
+    "rationale": [
+      "Subjective task: no objective winner is declared. The rubric and each judge's scores are exposed instead.",
+      "p2: mean weighted rubric score 4.0 (1 judge only)",
+      "p1: mean weighted rubric score 4.0 (1 judge only)"
+    ],
+    "rejected": [],
+    "unverified": [
+      "Rubric scores are model judgments, not verification."
+    ],
+    "popular_option": null,
+    "overturned_popular": false,
+    "vote_note": "Support counts are reported for transparency only; they were not used to select an answer.",
+    "status": "subjective",
+    "judgment_summary": [
+      {
+        "proposal_id": "p2",
+        "weighted_score_by_judge": {
+          "mock-writer-1": 4.0
+        },
+        "mean": 4.0,
+        "spread": 0.0,
+        "judges": 1
+      },
+      {
+        "proposal_id": "p1",
+        "weighted_score_by_judge": {
+          "mock-writer-2": 4.0
+        },
+        "mean": 4.0,
+        "spread": 0.0,
+        "judges": 1
+      }
+    ]
+  },
+  "uncertainty": {
+    "level": "medium",
+    "reasons": [
+      "subjective task: outcome depends on rubric judgments, which are opinions"
+    ]
+  },
+  "candidate_lesson": null
+}

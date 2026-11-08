@@ -1,0 +1,28 @@
+{
+  "schema_version": "1.0",
+  "task": {
+    "id": "numeric-overturn",
+    "title": "Overturn a popular wrong product",
+    "prompt": "What is 3847 multiplied by 2963?",
+    "domain": "general",
+    "answer_format": "number",
+    "tags": [
+      "arithmetic",
+      "demo"
+    ]
+  },
+  "checks": [
+    {
+      "id": "product",
+      "type": "numeric_reference",
+      "expression": "3847 * 2963",
+      "description": "Recompute deterministically; never trust the vote."
+    }
+  ],
+  "privacy": {
+    "level": "public"
+  },
+  "options": {
+    "use_lessons": false
+  }
+}

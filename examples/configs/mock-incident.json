@@ -1,0 +1,84 @@
+{
+  "_comment": "MOCK providers for examples/inputs/incident-evidence.json: two repeat the status page, one reads the log.",
+  "providers": [
+    {
+      "name": "mock-a",
+      "type": "mock",
+      "locality": "local",
+      "response": {
+        "answer": "14:00",
+        "summary": "mock-a reading of the evidence",
+        "assumptions": [
+          "status page is authoritative"
+        ],
+        "claims": [
+          {
+            "statement": "Errors began at 14:00 per the status page",
+            "key": "first_error_utc",
+            "value": "14:00",
+            "evidence_ids": [
+              "status-page"
+            ],
+            "quote": "degraded performance from 14:00 UTC"
+          }
+        ],
+        "uncertainties": [],
+        "confidence": 0.9
+      }
+    },
+    {
+      "name": "mock-b",
+      "type": "mock",
+      "locality": "local",
+      "response": {
+        "answer": "14:00",
+        "summary": "mock-b reading of the evidence",
+        "assumptions": [
+          "status page is authoritative"
+        ],
+        "claims": [
+          {
+            "statement": "Errors began at 14:00 per the status page",
+            "key": "first_error_utc",
+            "value": "14:00",
+            "evidence_ids": [
+              "status-page"
+            ],
+            "quote": "degraded performance from 14:00 UTC"
+          }
+        ],
+        "uncertainties": [],
+        "confidence": 0.85
+      }
+    },
+    {
+      "name": "mock-c",
+      "type": "mock",
+      "locality": "local",
+      "response": {
+        "answer": "14:32",
+        "summary": "mock-c reading of the evidence",
+        "assumptions": [
+          "logs are ground truth"
+        ],
+        "claims": [
+          {
+            "statement": "The first 502 in the load balancer log is at 14:32:04",
+            "key": "first_error_utc",
+            "value": "14:32",
+            "evidence_ids": [
+              "lb-log"
+            ],
+            "quote": "14:32:04 GET /api 502"
+          }
+        ],
+        "uncertainties": [],
+        "confidence": 0.7
+      }
+    }
+  ],
+  "defaults": {
+    "timeout_s": 10,
+    "retries": 0
+  }
+}

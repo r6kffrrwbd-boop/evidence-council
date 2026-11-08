@@ -1,0 +1,186 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/evidence-council/schemas/output-1.0.json",
+  "title": "evidence-council review output",
+  "description": "Result (or partial stage state) of a council review. Contract version 1.0. Contains the input, so it has the same sensitivity as the input.",
+  "type": "object",
+  "required": ["schema_version", "run_id", "created_at", "stages_completed", "input", "task_digest", "providers", "privacy", "proposals"],
+  "properties": {
+    "schema_version": { "const": "1.0" },
+    "tool_version": { "type": "string" },
+    "run_id": { "type": "string" },
+    "created_at": { "type": "string" },
+    "stages_completed": {
+      "type": "array",
+      "items": { "enum": ["input", "proposals", "comparison", "verification", "verdict", "learning"] }
+    },
+    "input": { "type": "object" },
+    "task_digest": { "type": "string", "pattern": "^sha256:[0-9a-f]{64}$" },
+    "providers": {
+      "type": "object",
+      "required": ["used", "attempted", "excluded"],
+      "properties": {
+        "requested": { "type": "array", "items": { "type": "string" } },
+        "used": {
+          "description": "Providers whose adapter actually ran successfully and returned a usable proposal. Nothing else may be described as a participant.",
+          "type": "array", "items": { "type": "string" }
+        },
+        "attempted": { "type": "array", "items": { "$ref": "#/$defs/attempt" } },
+        "excluded": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["provider", "reason"],
+            "properties": { "provider": { "type": "string" }, "reason": { "type": "string" } }
+          }
+        }
+      }
+    },
+    "privacy": {
+      "type": "object",
+      "required": ["level", "routing"],
+      "properties": {
+        "level": { "enum": ["public", "internal", "private", "restricted"] },
+        "local_only": { "type": "boolean" },
+        "routing": { "type": "array", "items": { "$ref": "#/$defs/route" } },
+        "findings": { "type": "object" }
+      }
+    },
+    "proposals": { "type": "array", "items": { "$ref": "#/$defs/proposal" } },
+    "options": { "type": "array", "items": { "$ref": "#/$defs/option" } },
+    "disagreements": { "type": "array", "items": { "$ref": "#/$defs/disagreement" } },
+    "claims": { "type": "array", "items": { "type": "object" } },
+    "verification": {
+      "type": "object",
+      "required": ["checks", "summary"],
+      "properties": {
+        "checks": { "type": "array", "items": { "$ref": "#/$defs/check_result" } },
+        "summary": {
+          "type": "object",
+          "required": ["run", "passed", "failed", "errored", "not_run"],
+          "properties": {
+            "run": { "type": "integer" }, "passed": { "type": "integer" }, "failed": { "type": "integer" },
+            "errored": { "type": "integer" }, "not_run": { "type": "integer" }
+          }
+        },
+        "note": { "type": "string" }
+      }
+    },
+    "judgments": { "type": "array", "items": { "type": "object" } },
+    "verdict": { "$ref": "#/$defs/verdict" },
+    "uncertainty": {
+      "type": "object",
+      "required": ["level", "reasons"],
+      "properties": { "level": { "enum": ["low", "medium", "high"] }, "reasons": { "type": "array", "items": { "type": "string" } } }
+    },
+    "candidate_lesson": { "type": ["object", "null"] },
+    "relevant_lessons": { "type": "array", "items": { "type": "object" } },
+    "warnings": { "type": "array", "items": { "type": "string" } }
+  },
+  "$defs": {
+    "attempt": {
+      "type": "object",
+      "required": ["provider", "status"],
+      "properties": {
+        "provider": { "type": "string" },
+        "adapter": { "type": "string" },
+        "locality": { "enum": ["local", "cloud"] },
+        "role": { "enum": ["proposer", "judge"] },
+        "status": { "enum": ["ok", "unavailable", "timeout", "error", "cancelled", "parse_error"] },
+        "attempts": { "type": "integer" },
+        "duration_s": { "type": "number" },
+        "tokens": { "type": ["object", "null"] },
+        "cost_usd": { "type": ["number", "null"] },
+        "cost_note": { "type": "string" },
+        "error": { "type": "string" }
+      }
+    },
+    "route": {
+      "type": "object",
+      "required": ["provider", "locality", "allowed"],
+      "properties": {
+        "provider": { "type": "string" },
+        "locality": { "enum": ["local", "cloud"] },
+        "allowed": { "type": "boolean" },
+        "reason": { "type": "string" },
+        "included_evidence": { "type": "array", "items": { "type": "string" } },
+        "excluded_evidence": { "type": "array", "items": { "type": "object" } },
+        "redactions": { "type": "object" }
+      }
+    },
+    "proposal": {
+      "type": "object",
+      "required": ["id", "source", "origin", "answer", "claims"],
+      "properties": {
+        "id": { "type": "string" },
+        "source": { "enum": ["provider", "candidate"] },
+        "origin": { "type": "string" },
+        "answer": { "type": "string" },
+        "normalized_answer": { "type": "string" },
+        "summary": { "type": "string" },
+        "assumptions": { "type": "array", "items": { "type": "string" } },
+        "claims": { "type": "array", "items": { "type": "object" } },
+        "tradeoffs": { "type": "array", "items": { "type": "string" } },
+        "uncertainties": { "type": "array", "items": { "type": "string" } },
+        "self_confidence": { "type": ["number", "null"] },
+        "parse": { "enum": ["json", "text_fallback", "input"] },
+        "untrusted": { "const": true }
+      }
+    },
+    "option": {
+      "type": "object",
+      "required": ["option_id", "normalized_answer", "proposals", "support_count"],
+      "properties": {
+        "option_id": { "type": "string" },
+        "normalized_answer": { "type": "string" },
+        "display_answer": { "type": "string" },
+        "proposals": { "type": "array", "items": { "type": "string" } },
+        "support_count": { "type": "integer" }
+      }
+    },
+    "disagreement": {
+      "type": "object",
+      "required": ["type", "topic", "positions"],
+      "properties": {
+        "type": { "enum": ["answer", "claim", "assumption", "confidence"] },
+        "topic": { "type": "string" },
+        "positions": { "type": "array", "items": { "type": "object" } }
+      }
+    },
+    "check_result": {
+      "type": "object",
+      "required": ["check_id", "type", "status", "ran", "decisive"],
+      "properties": {
+        "check_id": { "type": "string" },
+        "type": { "type": "string" },
+        "auto": { "type": "boolean" },
+        "decisive": { "type": "boolean", "description": "true = an answer-level check whose pass can select an option; false = format or claim-level check" },
+        "can_select": { "type": "boolean" },
+        "target_option": { "type": ["string", "null"] },
+        "target_proposal": { "type": ["string", "null"] },
+        "target_claim": { "type": ["string", "null"] },
+        "status": { "enum": ["pass", "fail", "error", "not_run"] },
+        "ran": { "type": "boolean" },
+        "detail": { "type": "string" },
+        "duration_s": { "type": "number" }
+      }
+    },
+    "verdict": {
+      "type": "object",
+      "required": ["status", "selected_option", "rationale", "rejected", "unverified"],
+      "properties": {
+        "status": { "enum": ["supported", "multiple_supported", "insufficient_evidence", "all_rejected", "subjective", "no_proposals"] },
+        "selected_option": { "type": ["string", "null"] },
+        "selected_answer": { "type": ["string", "null"] },
+        "selected_proposals": { "type": "array", "items": { "type": "string" } },
+        "also_supported": { "type": "array", "items": { "type": "string" } },
+        "rationale": { "type": "array", "items": { "type": "string" } },
+        "rejected": { "type": "array", "items": { "type": "object" } },
+        "unverified": { "type": "array", "items": { "type": "string" } },
+        "popular_option": { "type": ["string", "null"] },
+        "overturned_popular": { "type": "boolean" },
+        "vote_note": { "type": "string" }
+      }
+    }
+  }
+}

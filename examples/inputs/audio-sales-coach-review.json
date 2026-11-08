@@ -1,0 +1,147 @@
+{
+  "schema_version": "1.0",
+  "task": {
+    "id": "coach-call-0193",
+    "title": "Review draft coaching notes",
+    "prompt": "Review the draft coaching notes. Each note must be supported by the cited timestamped observations. Flag notes that misstate what happened.",
+    "domain": "coaching",
+    "answer_format": "text",
+    "tags": [
+      "sales-coaching",
+      "review"
+    ]
+  },
+  "evidence": [
+    {
+      "id": "call-0193",
+      "kind": "recording",
+      "title": "Call recording (not forwarded)",
+      "uri": "file:///recordings/call-0193.m4a",
+      "source_ref": "call-0193"
+    },
+    {
+      "id": "obs-1",
+      "kind": "observation",
+      "timestamp": "00:02:41.0",
+      "source_ref": "call-0193#t=161.0",
+      "content": "Rep asked about the client's current tooling before pitching.",
+      "facts": [
+        {
+          "key": "discovery_before_pitch",
+          "value": true
+        }
+      ]
+    },
+    {
+      "id": "obs-2",
+      "kind": "observation",
+      "timestamp": "00:07:15.5",
+      "source_ref": "call-0193#t=435.5",
+      "content": "Rep quoted the annual price before the client asked about cost.",
+      "facts": [
+        {
+          "key": "price_volunteered_early",
+          "value": true
+        }
+      ]
+    },
+    {
+      "id": "obs-3",
+      "kind": "observation",
+      "timestamp": "00:11:02.0",
+      "source_ref": "call-0193#t=662.0",
+      "content": "Client said: we need sign-off from finance.",
+      "facts": [
+        {
+          "key": "next_step_agreed",
+          "value": false
+        }
+      ]
+    }
+  ],
+  "candidates": [
+    {
+      "id": "draft-1",
+      "label": "coach draft v1",
+      "answer": "Strong discovery; consider holding price until asked; secure a dated next step with finance.",
+      "claims": [
+        {
+          "statement": "Rep did discovery before pitching",
+          "key": "discovery_before_pitch",
+          "value": true,
+          "evidence_ids": [
+            "obs-1"
+          ],
+          "timestamp": "00:02:41.0"
+        },
+        {
+          "statement": "Rep volunteered price early",
+          "key": "price_volunteered_early",
+          "value": true,
+          "evidence_ids": [
+            "obs-2"
+          ],
+          "quote": "quoted the annual price before the client asked"
+        },
+        {
+          "statement": "No dated next step was agreed",
+          "key": "next_step_agreed",
+          "value": false,
+          "evidence_ids": [
+            "obs-3"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "draft-2",
+      "label": "coach draft v2",
+      "answer": "Rep secured a next step with finance and handled pricing well.",
+      "claims": [
+        {
+          "statement": "A next step was agreed",
+          "key": "next_step_agreed",
+          "value": true,
+          "evidence_ids": [
+            "obs-3"
+          ]
+        },
+        {
+          "statement": "Pricing came after the client asked",
+          "key": "price_volunteered_early",
+          "value": false,
+          "evidence_ids": [
+            "obs-2"
+          ],
+          "timestamp": "00:07:20.0"
+        }
+      ]
+    }
+  ],
+  "checks": [
+    {
+      "id": "facts",
+      "type": "evidence_facts",
+      "decisive": true,
+      "description": "Every keyed claim must match the observation facts."
+    },
+    {
+      "id": "cites",
+      "type": "citations",
+      "require_citations": true,
+      "decisive": true,
+      "description": "Every claim must cite an existing observation; quotes and timestamps must match."
+    }
+  ],
+  "privacy": {
+    "level": "private"
+  },
+  "providers": {
+    "requested": [
+      "none"
+    ]
+  },
+  "options": {
+    "use_lessons": false
+  }
+}

@@ -1,0 +1,186 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/evidence-council/schemas/input-1.0.json",
+  "title": "evidence-council review input",
+  "description": "A task to put to the council, with optional evidence, constraints, draft candidates, objective checks, rubric, privacy settings and provider selection. Contract version 1.0.",
+  "type": "object",
+  "required": ["schema_version", "task"],
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": { "const": "1.0" },
+    "task": {
+      "type": "object",
+      "required": ["prompt"],
+      "additionalProperties": false,
+      "properties": {
+        "id": { "type": "string", "maxLength": 200 },
+        "title": { "type": "string", "maxLength": 300 },
+        "prompt": { "type": "string", "minLength": 1, "maxLength": 50000 },
+        "domain": { "enum": ["coding", "research", "business", "coaching", "general"], "default": "general" },
+        "kind": {
+          "enum": ["objective", "subjective"],
+          "default": "objective",
+          "description": "objective: there is a checkable right answer. subjective: judged by rubric; the council exposes competing judgments instead of inventing a winner."
+        },
+        "answer_format": { "enum": ["text", "number", "code", "json", "choice"], "default": "text" },
+        "answer_extract": { "type": "string", "maxLength": 500, "description": "Optional regex (author-controlled) selecting the core value of an answer, e.g. \\d{2}:\\d{2}. Used to group answers into options and by reference_value / fact_answer checks; group 1 is used if present." },
+        "choices": { "type": "array", "items": { "type": "string" }, "maxItems": 50 },
+        "tags": { "type": "array", "items": { "type": "string", "maxLength": 60 }, "maxItems": 30 }
+      }
+    },
+    "evidence": {
+      "type": "array",
+      "maxItems": 500,
+      "items": { "$ref": "#/$defs/evidence" }
+    },
+    "constraints": { "type": "array", "items": { "type": "string", "maxLength": 2000 }, "maxItems": 100 },
+    "candidates": {
+      "description": "Pre-existing drafts to review alongside (or instead of) provider proposals, e.g. draft coaching notes from another program.",
+      "type": "array",
+      "maxItems": 50,
+      "items": { "$ref": "#/$defs/candidate" }
+    },
+    "checks": { "type": "array", "maxItems": 100, "items": { "$ref": "#/$defs/check" } },
+    "rubric": {
+      "type": "array",
+      "maxItems": 20,
+      "items": {
+        "type": "object",
+        "required": ["criterion"],
+        "additionalProperties": false,
+        "properties": {
+          "criterion": { "type": "string", "maxLength": 200 },
+          "weight": { "type": "number", "minimum": 0, "default": 1 },
+          "description": { "type": "string", "maxLength": 2000 }
+        }
+      }
+    },
+    "privacy": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "level": {
+          "enum": ["public", "internal", "private", "restricted"],
+          "default": "private",
+          "description": "public/internal: cloud providers allowed (PII still redacted). private (default): cloud providers excluded unless the operator allowlists them in config or with --allow-private-to. restricted: local providers only, no override."
+        },
+        "local_only": { "type": "boolean", "default": false },
+        "redact": { "type": "boolean", "default": true, "description": "Redact phone numbers / emails before sending to cloud providers. Secrets are always redacted for every provider." }
+      }
+    },
+    "providers": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "requested": { "type": "array", "items": { "type": "string" }, "description": "Provider names to use (e.g. codex, ollama:qwen3.5:9b). Empty or absent = every enabled, available provider. ['none'] = review candidates only." },
+        "exclude": { "type": "array", "items": { "type": "string" } },
+        "judges": { "type": "array", "items": { "type": "string" }, "description": "Providers allowed to act as rubric judges for subjective tasks." },
+        "min_participants": { "type": "integer", "minimum": 0, "maximum": 20 }
+      }
+    },
+    "options": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "timeout_s": { "type": "number", "minimum": 1, "maximum": 3600 },
+        "deadline_s": { "type": "number", "minimum": 1, "maximum": 7200 },
+        "retries": { "type": "integer", "minimum": 0, "maximum": 5 },
+        "max_output_chars": { "type": "integer", "minimum": 200, "maximum": 200000 },
+        "allow_code_execution": { "type": "boolean", "default": false, "description": "Required for python_tests and command checks, which execute code in a temporary, network-denied sandbox where available." },
+        "create_lesson": { "type": "boolean", "default": true },
+        "use_lessons": { "type": "boolean", "default": true }
+      }
+    }
+  },
+  "$defs": {
+    "evidence": {
+      "type": "object",
+      "required": ["id", "kind"],
+      "additionalProperties": false,
+      "properties": {
+        "id": { "type": "string", "pattern": "^[A-Za-z0-9_.:-]{1,80}$" },
+        "kind": { "enum": ["document", "log", "observation", "measurement", "transcript", "audio", "recording", "test_output", "web", "note", "data"] },
+        "title": { "type": "string", "maxLength": 300 },
+        "content": { "type": "string", "maxLength": 200000 },
+        "uri": { "type": "string", "maxLength": 2000, "description": "Reference only. Never fetched or forwarded for audio/recording evidence." },
+        "source_ref": { "type": "string", "maxLength": 500, "description": "Where this came from, e.g. call-2026-11-01#t=192.5 or file.py:42." },
+        "timestamp": { "type": "string", "maxLength": 64, "description": "Offset inside a source (e.g. 00:03:12.5) or an ISO-8601 instant." },
+        "recorded_at": { "type": "string", "maxLength": 64, "description": "ISO-8601 time the evidence was captured." },
+        "sensitive": { "type": "boolean", "default": false, "description": "Never forwarded to cloud providers unless explicitly allowlisted." },
+        "facts": {
+          "type": "array",
+          "maxItems": 200,
+          "items": {
+            "type": "object",
+            "required": ["key", "value"],
+            "additionalProperties": false,
+            "properties": {
+              "key": { "type": "string", "pattern": "^[A-Za-z0-9_.-]{1,80}$" },
+              "value": { "type": ["string", "number", "boolean"] },
+              "unit": { "type": "string", "maxLength": 40 }
+            }
+          }
+        }
+      }
+    },
+    "claim": {
+      "type": "object",
+      "required": ["statement"],
+      "additionalProperties": false,
+      "properties": {
+        "id": { "type": "string" },
+        "statement": { "type": "string", "maxLength": 4000 },
+        "key": { "type": "string", "maxLength": 80 },
+        "value": { "type": ["string", "number", "boolean", "null"] },
+        "evidence_ids": { "type": "array", "items": { "type": "string" } },
+        "quote": { "type": "string", "maxLength": 2000 },
+        "timestamp": { "type": "string", "maxLength": 64 }
+      }
+    },
+    "candidate": {
+      "type": "object",
+      "required": ["id", "answer"],
+      "additionalProperties": false,
+      "properties": {
+        "id": { "type": "string", "pattern": "^[A-Za-z0-9_.:-]{1,80}$" },
+        "label": { "type": "string", "maxLength": 200 },
+        "answer": { "type": "string", "maxLength": 100000 },
+        "summary": { "type": "string", "maxLength": 4000 },
+        "claims": { "type": "array", "maxItems": 200, "items": { "$ref": "#/$defs/claim" } },
+        "assumptions": { "type": "array", "items": { "type": "string" } }
+      }
+    },
+    "check": {
+      "type": "object",
+      "required": ["id", "type"],
+      "properties": {
+        "id": { "type": "string", "pattern": "^[A-Za-z0-9_.:-]{1,80}$" },
+        "type": { "enum": ["numeric_reference", "reference_value", "fact_answer", "regex", "json_schema", "python_tests", "command", "evidence_facts", "citations"] },
+        "description": { "type": "string", "maxLength": 1000 },
+        "expression": { "type": "string", "maxLength": 2000 },
+        "tolerance": { "type": "number", "minimum": 0 },
+        "value": {},
+        "case_sensitive": { "type": "boolean" },
+        "fact_key": { "type": "string" },
+        "pattern": { "type": "string", "maxLength": 2000 },
+        "schema": { "type": "object" },
+        "test_code": { "type": "string", "maxLength": 200000 },
+        "module_name": { "type": "string", "pattern": "^[A-Za-z_][A-Za-z0-9_]{0,60}$" },
+        "argv": { "type": "array", "items": { "type": "string" }, "minItems": 1 },
+        "timeout_s": { "type": "number", "minimum": 1, "maximum": 600 },
+        "require_citations": { "type": "boolean" },
+        "decisive": { "type": "boolean", "description": "evidence_facts/citations only: also judge each option as a whole (see docs/contract.md#checks)." },
+        "auto": { "type": "boolean", "description": "Reserved: set by the tool for automatically added checks." }
+      },
+      "allOf": [
+        { "if": { "properties": { "type": { "const": "numeric_reference" } } }, "then": { "required": ["expression"] } },
+        { "if": { "properties": { "type": { "const": "reference_value" } } }, "then": { "required": ["value"] } },
+        { "if": { "properties": { "type": { "const": "fact_answer" } } }, "then": { "required": ["fact_key"] } },
+        { "if": { "properties": { "type": { "const": "regex" } } }, "then": { "required": ["pattern"] } },
+        { "if": { "properties": { "type": { "const": "json_schema" } } }, "then": { "required": ["schema"] } },
+        { "if": { "properties": { "type": { "const": "python_tests" } } }, "then": { "required": ["test_code"] } },
+        { "if": { "properties": { "type": { "const": "command" } } }, "then": { "required": ["argv"] } }
+      ]
+    }
+  }
+}

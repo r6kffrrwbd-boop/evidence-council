@@ -1,0 +1,440 @@
+{
+  "schema_version": "1.0",
+  "tool_version": "0.1.0",
+  "run_id": "run-20261108T171601Z-e2c538a5",
+  "created_at": "2026-11-08T17:16:01Z",
+  "stages_completed": [
+    "input",
+    "proposals",
+    "comparison",
+    "verification",
+    "verdict",
+    "learning"
+  ],
+  "input": {
+    "schema_version": "1.0",
+    "task": {
+      "id": "numeric-overturn",
+      "title": "Overturn a popular wrong product",
+      "prompt": "What is 3847 multiplied by 2963?",
+      "domain": "general",
+      "answer_format": "number",
+      "tags": [
+        "arithmetic",
+        "demo"
+      ],
+      "kind": "objective"
+    },
+    "checks": [
+      {
+        "id": "product",
+        "type": "numeric_reference",
+        "expression": "3847 * 2963",
+        "description": "Recompute deterministically; never trust the vote."
+      }
+    ],
+    "privacy": {
+      "level": "public",
+      "local_only": false,
+      "redact": true
+    },
+    "options": {
+      "use_lessons": false,
+      "allow_code_execution": false,
+      "create_lesson": true
+    },
+    "evidence": [],
+    "constraints": [],
+    "candidates": [],
+    "rubric": [],
+    "providers": {
+      "requested": [],
+      "exclude": [],
+      "judges": []
+    }
+  },
+  "task_digest": "sha256:2ede284cb165e894bf8572af4242bd7e26f0b5b6232deadb15dabc1fa8c2caa3",
+  "providers": {
+    "requested": [],
+    "used": [
+      "mock-majority-1",
+      "mock-majority-2",
+      "mock-minority"
+    ],
+    "attempted": [
+      {
+        "provider": "mock-majority-1",
+        "adapter": "mock",
+        "locality": "local",
+        "status": "ok",
+        "attempts": 1,
+        "duration_s": 0.0,
+        "tokens": {
+          "total": 0
+        },
+        "cost_usd": 0.0,
+        "cost_note": "mock",
+        "role": "proposer"
+      },
+      {
+        "provider": "mock-majority-2",
+        "adapter": "mock",
+        "locality": "local",
+        "status": "ok",
+        "attempts": 1,
+        "duration_s": 0.0,
+        "tokens": {
+          "total": 0
+        },
+        "cost_usd": 0.0,
+        "cost_note": "mock",
+        "role": "proposer"
+      },
+      {
+        "provider": "mock-minority",
+        "adapter": "mock",
+        "locality": "local",
+        "status": "ok",
+        "attempts": 1,
+        "duration_s": 0.0,
+        "tokens": {
+          "total": 0
+        },
+        "cost_usd": 0.0,
+        "cost_note": "mock",
+        "role": "proposer"
+      }
+    ],
+    "excluded": []
+  },
+  "privacy": {
+    "level": "public",
+    "local_only": false,
+    "routing": [
+      {
+        "provider": "mock-majority-1",
+        "locality": "local",
+        "allowed": true,
+        "reason": "local provider: data stays on this machine",
+        "included_evidence": [],
+        "excluded_evidence": [],
+        "redactions": {}
+      },
+      {
+        "provider": "mock-majority-2",
+        "locality": "local",
+        "allowed": true,
+        "reason": "local provider: data stays on this machine",
+        "included_evidence": [],
+        "excluded_evidence": [],
+        "redactions": {}
+      },
+      {
+        "provider": "mock-minority",
+        "locality": "local",
+        "allowed": true,
+        "reason": "local provider: data stays on this machine",
+        "included_evidence": [],
+        "excluded_evidence": [],
+        "redactions": {}
+      }
+    ],
+    "findings": {
+      "pii_counts": {
+        "phone": 0,
+        "email": 0,
+        "card": 0,
+        "secret": 0
+      },
+      "never_forward_evidence": [],
+      "sensitive_evidence": []
+    }
+  },
+  "proposals": [
+    {
+      "id": "p1",
+      "source": "provider",
+      "origin": "mock-majority-1",
+      "answer": "11398561",
+      "normalized_answer": "11398561",
+      "summary": "Multiplied mentally.",
+      "assumptions": [
+        "standard multiplication"
+      ],
+      "claims": [
+        {
+          "id": "p1.c1",
+          "statement": "3847 x 2963 = 11,398,561",
+          "evidence_ids": []
+        }
+      ],
+      "tradeoffs": [],
+      "uncertainties": [],
+      "self_confidence": 0.9,
+      "parse": "json",
+      "untrusted": true,
+      "adapter": "mock"
+    },
+    {
+      "id": "p2",
+      "source": "provider",
+      "origin": "mock-majority-2",
+      "answer": "11,398,561",
+      "normalized_answer": "11398561",
+      "summary": "Long multiplication.",
+      "assumptions": [
+        "standard multiplication"
+      ],
+      "claims": [],
+      "tradeoffs": [],
+      "uncertainties": [],
+      "self_confidence": 0.8,
+      "parse": "json",
+      "untrusted": true,
+      "adapter": "mock"
+    },
+    {
+      "id": "p3",
+      "source": "provider",
+      "origin": "mock-minority",
+      "answer": "11398661",
+      "normalized_answer": "11398661",
+      "summary": "3847*3000 - 3847*37 = 11,541,000 - 142,339.",
+      "assumptions": [
+        "standard multiplication"
+      ],
+      "claims": [
+        {
+          "id": "p3.c1",
+          "statement": "3847*37 = 142339",
+          "evidence_ids": []
+        }
+      ],
+      "tradeoffs": [],
+      "uncertainties": [],
+      "self_confidence": 0.7,
+      "parse": "json",
+      "untrusted": true,
+      "adapter": "mock"
+    }
+  ],
+  "relevant_lessons": [],
+  "warnings": [],
+  "options": [
+    {
+      "option_id": "A",
+      "normalized_answer": "11398561",
+      "display_answer": "11398561",
+      "proposals": [
+        "p1",
+        "p2"
+      ],
+      "origins": [
+        "mock-majority-1",
+        "mock-majority-2"
+      ],
+      "support_count": 2
+    },
+    {
+      "option_id": "B",
+      "normalized_answer": "11398661",
+      "display_answer": "11398661",
+      "proposals": [
+        "p3"
+      ],
+      "origins": [
+        "mock-minority"
+      ],
+      "support_count": 1
+    }
+  ],
+  "disagreements": [
+    {
+      "type": "answer",
+      "topic": "final answer",
+      "positions": [
+        {
+          "option_id": "A",
+          "answer": "11398561",
+          "held_by": [
+            "mock-majority-1",
+            "mock-majority-2"
+          ]
+        },
+        {
+          "option_id": "B",
+          "answer": "11398661",
+          "held_by": [
+            "mock-minority"
+          ]
+        }
+      ]
+    }
+  ],
+  "claims": [
+    {
+      "claim_id": "p1.c1",
+      "proposal_id": "p1",
+      "origin": "mock-majority-1",
+      "statement": "3847 x 2963 = 11,398,561",
+      "key": null,
+      "value": null,
+      "evidence_ids": [],
+      "status": "unverified",
+      "checks": []
+    },
+    {
+      "claim_id": "p3.c1",
+      "proposal_id": "p3",
+      "origin": "mock-minority",
+      "statement": "3847*37 = 142339",
+      "key": null,
+      "value": null,
+      "evidence_ids": [],
+      "status": "unverified",
+      "checks": []
+    }
+  ],
+  "verification": {
+    "checks": [
+      {
+        "check_id": "product",
+        "type": "numeric_reference",
+        "auto": false,
+        "decisive": true,
+        "can_select": true,
+        "target_option": "A",
+        "target_proposal": null,
+        "target_claim": null,
+        "status": "fail",
+        "ran": true,
+        "detail": "computed 3847 * 2963 = 11398661; answer 11398561",
+        "duration_s": 0.0
+      },
+      {
+        "check_id": "product",
+        "type": "numeric_reference",
+        "auto": false,
+        "decisive": true,
+        "can_select": true,
+        "target_option": "B",
+        "target_proposal": null,
+        "target_claim": null,
+        "status": "pass",
+        "ran": true,
+        "detail": "computed 3847 * 2963 = 11398661; answer 11398661",
+        "duration_s": 0.0
+      }
+    ],
+    "summary": {
+      "run": 2,
+      "passed": 1,
+      "failed": 1,
+      "errored": 0,
+      "not_run": 0
+    },
+    "note": "",
+    "defined_checks": [
+      {
+        "id": "product",
+        "type": "numeric_reference",
+        "auto": false
+      }
+    ]
+  },
+  "judgments": [],
+  "verdict": {
+    "selected_option": "B",
+    "selected_answer": "11398661",
+    "selected_proposals": [
+      "p3"
+    ],
+    "also_supported": [],
+    "rationale": [
+      "Option B passed selecting check(s): product (numeric_reference): computed 3847 * 2963 = 11398661; answer 11398661",
+      "The most popular answer (option A, 2 of 3 proposals) was rejected by objective checks; agreement did not outweigh evidence."
+    ],
+    "rejected": [
+      {
+        "option_id": "A",
+        "answer": "11398561",
+        "held_by": [
+          "mock-majority-1",
+          "mock-majority-2"
+        ],
+        "support_count": 2,
+        "reasons": [
+          "product (numeric_reference) failed: computed 3847 * 2963 = 11398661; answer 11398561"
+        ]
+      }
+    ],
+    "unverified": [
+      "claim p3.c1: 3847*37 = 142339"
+    ],
+    "popular_option": "A",
+    "overturned_popular": true,
+    "vote_note": "Support counts are reported for transparency only; they were not used to select an answer.",
+    "status": "supported"
+  },
+  "uncertainty": {
+    "level": "medium",
+    "reasons": [
+      "selection rests on a single selecting check"
+    ]
+  },
+  "candidate_lesson": {
+    "schema_version": "1.0",
+    "status": "candidate",
+    "kind": "verified_outcome",
+    "statement": "In general task 'Overturn a popular wrong product', the majority answer '11398561' (2 proposals) failed objective checks while the answer '11398661' passed numeric_reference. Provider agreement was wrong here: verify number answers with numeric_reference before trusting consensus.",
+    "subject_key": "general:numeric-overturn",
+    "verified_answer": "11398661",
+    "domain": "general",
+    "tags": [
+      "arithmetic",
+      "demo"
+    ],
+    "source": {
+      "run_id": "run-20261108T171601Z-e2c538a5",
+      "task_id": "numeric-overturn",
+      "task_digest": "sha256:2ede284cb165e894bf8572af4242bd7e26f0b5b6232deadb15dabc1fa8c2caa3",
+      "verdict_status": "supported",
+      "privacy_level": "public"
+    },
+    "evidence": {
+      "checks": [
+        {
+          "check_id": "product",
+          "type": "numeric_reference",
+          "status": "fail",
+          "ran": true,
+          "decisive": true,
+          "can_select": true,
+          "target_option": "A"
+        },
+        {
+          "check_id": "product",
+          "type": "numeric_reference",
+          "status": "pass",
+          "ran": true,
+          "decisive": true,
+          "can_select": true,
+          "target_option": "B"
+        }
+      ],
+      "rejected_answers": [
+        "11398561"
+      ],
+      "providers_correct": [
+        "mock-minority"
+      ],
+      "providers_incorrect": [
+        "mock-majority-1",
+        "mock-majority-2"
+      ]
+    },
+    "created_at": "2026-11-08T17:16:01Z",
+    "acceptance": null,
+    "lesson_id": "lesson-b2e60762ee64ebf4"
+  }
+}

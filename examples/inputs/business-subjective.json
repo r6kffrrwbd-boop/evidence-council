@@ -1,0 +1,30 @@
+{
+  "schema_version": "1.0",
+  "task": {
+    "id": "renewal-email",
+    "title": "Renewal email opening",
+    "prompt": "Write the first two sentences of a renewal reminder email for a small-business customer whose contract ends in 30 days.",
+    "domain": "business",
+    "kind": "subjective",
+    "answer_format": "text",
+    "tags": [
+      "writing",
+      "renewals"
+    ]
+  },
+  "rubric": [
+    {
+      "criterion": "clarity",
+      "weight": 1,
+      "description": "States the renewal date and next step plainly."
+    },
+    {
+      "criterion": "tone",
+      "weight": 1,
+      "description": "Warm, not pushy."
+    }
+  ],
+  "privacy": {
+    "level": "internal"
+  }
+}

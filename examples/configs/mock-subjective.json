@@ -1,0 +1,65 @@
+{
+  "_comment": "MOCK providers with judge responses for examples/inputs/business-subjective.json.",
+  "providers": [
+    {
+      "name": "mock-writer-1",
+      "type": "mock",
+      "response": {
+        "answer": "Your plan renews on 8 December. Reply to this email or click Renew to keep your rates.",
+        "summary": "Direct",
+        "assumptions": [],
+        "claims": [],
+        "uncertainties": [],
+        "confidence": 0.6
+      },
+      "judge_response": {
+        "scores": [
+          {
+            "proposal_id": "p2",
+            "criterion": "clarity",
+            "score": 3,
+            "reason": "date implied, not stated"
+          },
+          {
+            "proposal_id": "p2",
+            "criterion": "tone",
+            "score": 5,
+            "reason": "warm"
+          }
+        ]
+      }
+    },
+    {
+      "name": "mock-writer-2",
+      "type": "mock",
+      "response": {
+        "answer": "It has been a pleasure working with you this year! Your contract is coming up for renewal next month.",
+        "summary": "Warm",
+        "assumptions": [],
+        "claims": [],
+        "uncertainties": [],
+        "confidence": 0.6
+      },
+      "judge_response": {
+        "scores": [
+          {
+            "proposal_id": "p1",
+            "criterion": "clarity",
+            "score": 5,
+            "reason": "date and action explicit"
+          },
+          {
+            "proposal_id": "p1",
+            "criterion": "tone",
+            "score": 3,
+            "reason": "a bit transactional"
+          }
+        ]
+      }
+    }
+  ],
+  "defaults": {
+    "timeout_s": 10,
+    "retries": 0
+  }
+}

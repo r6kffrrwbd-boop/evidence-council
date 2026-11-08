@@ -1,0 +1,15 @@
+{
+  "_comment": "Offline self-test: three deterministic MOCK providers. Two agree on a wrong answer; one is right. Nothing leaves the machine.",
+  "providers": [
+    {"name": "mock-majority-1", "type": "mock", "locality": "local",
+     "response": {"answer": "11398561", "summary": "Multiplied mentally.", "assumptions": ["standard multiplication"],
+                  "claims": [{"statement": "3847 x 2963 = 11,398,561"}], "uncertainties": [], "confidence": 0.9}},
+    {"name": "mock-majority-2", "type": "mock", "locality": "local",
+     "response": {"answer": "11,398,561", "summary": "Long multiplication.", "assumptions": ["standard multiplication"],
+                  "claims": [], "uncertainties": [], "confidence": 0.8}},
+    {"name": "mock-minority", "type": "mock", "locality": "local",
+     "response": {"answer": "11398661", "summary": "3847*3000 - 3847*37 = 11,541,000 - 142,339.", "assumptions": ["standard multiplication"],
+                  "claims": [{"statement": "3847*37 = 142339"}], "uncertainties": [], "confidence": 0.7}}
+  ],
+  "defaults": {"timeout_s": 10, "retries": 0}
+}

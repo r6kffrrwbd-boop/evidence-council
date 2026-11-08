@@ -1,0 +1,136 @@
+{
+  "config": "built-in defaults",
+  "probed": true,
+  "providers": [
+    {
+      "name": "codex",
+      "adapter": "codex",
+      "locality": "cloud",
+      "model": null,
+      "timeout_s": 300.0,
+      "retries": 1,
+      "available": true,
+      "reason": "Logged in using ChatGPT",
+      "enabled": true,
+      "probe": {
+        "status": "ok",
+        "duration_s": 11.9,
+        "reply": "PONG",
+        "error": "",
+        "tokens": {
+          "total": 19827
+        }
+      },
+      "callable": true
+    },
+    {
+      "name": "claude",
+      "adapter": "claude",
+      "locality": "cloud",
+      "model": null,
+      "timeout_s": 300.0,
+      "retries": 1,
+      "available": false,
+      "reason": "claude CLI is not logged in for headless use (run `claude` then /login, or set ANTHROPIC_API_KEY)",
+      "enabled": true
+    },
+    {
+      "name": "gemini",
+      "adapter": "gemini",
+      "locality": "cloud",
+      "model": null,
+      "timeout_s": 180.0,
+      "retries": 1,
+      "available": true,
+      "reason": "binary present; auth is confirmed only by a call (use `providers --probe`)",
+      "enabled": true,
+      "probe": {
+        "status": "unavailable",
+        "duration_s": 4.6,
+        "reply": "",
+        "error": "gemini exited 1 (Google reports this client is no longer supported for this account tier):     at process.processTicksAndRejections (node:internal/process/task_queues:103:5)",
+        "tokens": null
+      },
+      "callable": false
+    },
+    {
+      "name": "hermes",
+      "adapter": "hermes",
+      "locality": "cloud",
+      "model": null,
+      "timeout_s": 240.0,
+      "retries": 1,
+      "available": true,
+      "reason": "binary present; model reachability is confirmed only by a call",
+      "enabled": true,
+      "probe": {
+        "status": "error",
+        "duration_s": 16.1,
+        "reply": "",
+        "error": "hermes failed (exit 0): API call failed after 3 retries: HTTP 404: This model is unavailable for free. The paid version is available now - use this slug instead: qwen/qwen3.8-27b",
+        "tokens": null
+      },
+      "callable": false
+    },
+    {
+      "name": "ollama:qwen3.5:9b",
+      "adapter": "ollama",
+      "locality": "local",
+      "model": "qwen3.5:9b",
+      "timeout_s": 420.0,
+      "retries": 1,
+      "available": true,
+      "reason": "server reachable, model installed",
+      "enabled": true,
+      "probe": {
+        "status": "ok",
+        "duration_s": 93.7,
+        "reply": "{\n  \"error\": {\n    \"code\": \"PROMPT_INJEC",
+        "error": "",
+        "tokens": {
+          "input": 23,
+          "output": 56
+        }
+      },
+      "callable": true
+    },
+    {
+      "name": "ollama:qwen3.5:4b",
+      "adapter": "ollama",
+      "locality": "local",
+      "model": "qwen3.5:4b",
+      "timeout_s": 420.0,
+      "retries": 1,
+      "available": true,
+      "reason": "server reachable, model installed",
+      "enabled": true,
+      "probe": {
+        "status": "ok",
+        "duration_s": 51.1,
+        "reply": "{\n  \"PONG\": true\n}",
+        "error": "",
+        "tokens": {
+          "input": 23,
+          "output": 12
+        }
+      },
+      "callable": true
+    },
+    {
+      "name": "grok",
+      "adapter": "openai_compat",
+      "locality": "cloud",
+      "model": "grok-4",
+      "timeout_s": 180.0,
+      "retries": 1,
+      "available": false,
+      "reason": "environment variable XAI_API_KEY is not set",
+      "enabled": true
+    }
+  ],
+  "callable": [
+    "codex",
+    "ollama:qwen3.5:9b",
+    "ollama:qwen3.5:4b"
+  ]
+}

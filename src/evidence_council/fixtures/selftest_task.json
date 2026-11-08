@@ -1,0 +1,16 @@
+{
+  "schema_version": "1.0",
+  "task": {
+    "id": "selftest-multiplication",
+    "title": "Self-test: overturn a popular wrong product",
+    "prompt": "What is 3847 multiplied by 2963?",
+    "domain": "general",
+    "answer_format": "number",
+    "tags": ["selftest", "arithmetic"]
+  },
+  "checks": [
+    {"id": "product", "type": "numeric_reference", "expression": "3847 * 2963", "description": "Recompute the product deterministically."}
+  ],
+  "privacy": {"level": "public"},
+  "options": {"use_lessons": false}
+}
