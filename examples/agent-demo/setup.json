@@ -1,0 +1,88 @@
+{
+  "service": {
+    "argv": [
+      "python3",
+      "server.py",
+      "--port",
+      "{port}"
+    ],
+    "ready_path": "/health",
+    "startup_timeout_s": 15
+  },
+  "personas": [
+    {
+      "id": "maya-bulk-buyer",
+      "name": "Maya, buys mugs in bulk for her cafe",
+      "description": "Opens the shop page, asks for 12 mugs and expects to see the bulk discount.",
+      "kind": "browser",
+      "steps": [
+        {
+          "action": "goto",
+          "path": "/"
+        },
+        {
+          "action": "fill",
+          "selector": "#qty",
+          "value": "12"
+        },
+        {
+          "action": "click",
+          "selector": "#calc"
+        },
+        {
+          "action": "expect_text",
+          "selector": "#total",
+          "contains": "10% off"
+        }
+      ],
+      "max_requests": 6,
+      "max_request_ms": 3000
+    },
+    {
+      "id": "api-shopper",
+      "name": "A checkout widget calling the price API",
+      "kind": "http",
+      "description": "Asks the price API for 12 mugs.",
+      "steps": [
+        {
+          "action": "request",
+          "method": "GET",
+          "path": "/api/total?sku=mug&qty=12",
+          "expect_status": 200,
+          "contains": "\"total\""
+        }
+      ],
+      "max_requests": 1,
+      "max_request_ms": 2000
+    }
+  ],
+  "load": [
+    {
+      "id": "checkout-load",
+      "persona_id": "api-shopper",
+      "vus": 5,
+      "duration_s": 8,
+      "p95_ms": 200,
+      "max_error_rate": 0.01
+    }
+  ],
+  "optimizer": {
+    "goal": "Make computing a cart total faster (the user said checkout feels slow)",
+    "metric": {
+      "command_id": "bench",
+      "regex": "ms_per_1000_carts=([0-9.]+)",
+      "name": "ms_per_1000_carts",
+      "direction": "lower",
+      "unit": "ms"
+    },
+    "min_improvement_pct": 20,
+    "runs": 3
+  },
+  "limits": {
+    "max_cost_usd": 0.5,
+    "max_model_calls": 30,
+    "max_wall_s": 900,
+    "max_builder_rounds": 3,
+    "max_optimizer_attempts": 2
+  }
+}

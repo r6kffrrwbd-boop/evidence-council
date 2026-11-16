@@ -1,0 +1,197 @@
+{
+  "label": "baseline",
+  "at": "2026-11-16T12:57:39Z",
+  "commands": {
+    "unit-tests": {
+      "id": "unit-tests",
+      "kind": "test",
+      "argv": [
+        "python3",
+        "-m",
+        "unittest",
+        "discover",
+        "-s",
+        "tests",
+        "-t",
+        ".",
+        "-v"
+      ],
+      "started_at": "2026-11-16T12:57:39Z",
+      "sandboxed": true,
+      "network": "none",
+      "timeout_s": 60,
+      "duration_s": 0.237,
+      "exit_code": 0,
+      "stdout_tail": "",
+      "stderr_tail": "test_single_line (tests.test_shop.CartTotalTests.test_single_line) ... ok\ntest_two_lines (tests.test_shop.CartTotalTests.test_two_lines) ... ok\ntest_unknown_product_rejected (tests.test_shop.CartTotalTests.test_unknown_product_rejected) ... ok\ntest_zero_quantity_rejected (tests.test_shop.CartTotalTests.test_zero_quantity_rejected) ... ok\n\n----------------------------------------------------------------------\nRan 4 tests in 0.002s\n\nOK\n",
+      "tests": {
+        "ran": 4,
+        "failed": 0,
+        "names": {
+          "tests.test_shop.CartTotalTests.test_single_line": "ok",
+          "tests.test_shop.CartTotalTests.test_two_lines": "ok",
+          "tests.test_shop.CartTotalTests.test_unknown_product_rejected": "ok",
+          "tests.test_shop.CartTotalTests.test_zero_quantity_rejected": "ok"
+        }
+      },
+      "status": "passed"
+    }
+  },
+  "journeys": {
+    "maya-bulk-buyer": {
+      "id": "maya-bulk-buyer",
+      "kind": "journey",
+      "status": "failed",
+      "reasons": [
+        "step '4. check #total shows '10% off'' failed: text was: Total: $144.00"
+      ],
+      "raw": {
+        "script": "maya-bulk-buyer.js",
+        "exit_code": 0,
+        "duration_s": 14.17,
+        "steps": [
+          {
+            "step": "1. open /",
+            "ok": true,
+            "ms": 873,
+            "detail": ""
+          },
+          {
+            "step": "2. type '12' into #qty",
+            "ok": true,
+            "ms": 85,
+            "detail": ""
+          },
+          {
+            "step": "3. click #calc",
+            "ok": true,
+            "ms": 197,
+            "detail": ""
+          },
+          {
+            "step": "4. check #total shows '10% off'",
+            "ok": false,
+            "ms": 10094,
+            "detail": "text was: Total: $144.00"
+          }
+        ],
+        "failures": [],
+        "k6_errors": [],
+        "hung": false,
+        "request_log": [
+          {
+            "url": "/",
+            "ms": 3.2,
+            "wall_ms": 9,
+            "status": 200
+          },
+          {
+            "url": "/favicon.ico",
+            "ms": 1.101,
+            "wall_ms": 4,
+            "status": 404
+          },
+          {
+            "url": "/api/total?sku=mug&qty=12",
+            "ms": 1.6389999999999998,
+            "wall_ms": 12,
+            "status": 200
+          }
+        ],
+        "checks": {
+          "passes": 3,
+          "fails": 1
+        },
+        "iterations": 1,
+        "requests": 3,
+        "failed_request_rate": 0.3333333333333333,
+        "max_request_ms": 11.17,
+        "p95_ms": 10.9737,
+        "requests_per_iteration": 3.0,
+        "status": "ok"
+      },
+      "duration_s": 14.17,
+      "exit_code": 0,
+      "failure_excerpt": "step '4. check #total shows '10% off'' failed: text was: Total: $144.00"
+    },
+    "api-shopper": {
+      "id": "api-shopper",
+      "kind": "journey",
+      "status": "passed",
+      "reasons": [],
+      "raw": {
+        "script": "api-shopper.js",
+        "exit_code": 0,
+        "duration_s": 0.08,
+        "steps": [],
+        "failures": [],
+        "k6_errors": [],
+        "hung": false,
+        "request_log": [],
+        "checks": {
+          "passes": 1,
+          "fails": 0
+        },
+        "iterations": 1,
+        "requests": 1,
+        "failed_request_rate": 0,
+        "max_request_ms": 8.908,
+        "p95_ms": 8.908,
+        "requests_per_iteration": 1.0,
+        "status": "ok"
+      },
+      "duration_s": 0.08,
+      "exit_code": 0,
+      "failure_excerpt": ""
+    }
+  },
+  "load": {
+    "checkout-load": {
+      "id": "checkout-load",
+      "kind": "load",
+      "status": "passed",
+      "reasons": [],
+      "raw": {
+        "script": "load-checkout-load.js",
+        "exit_code": 0,
+        "duration_s": 8.08,
+        "steps": [],
+        "failures": [],
+        "k6_errors": [],
+        "hung": false,
+        "request_log": [],
+        "checks": {
+          "passes": 3590,
+          "fails": 0
+        },
+        "iterations": 3590,
+        "requests": 3590,
+        "failed_request_rate": 0,
+        "max_request_ms": 66.682,
+        "p95_ms": 17.536149999999985,
+        "requests_per_iteration": 1.0,
+        "status": "ok"
+      },
+      "duration_s": 8.08,
+      "exit_code": 0,
+      "failure_excerpt": "",
+      "p95_ms": 17.536149999999985,
+      "requests": 3590
+    }
+  },
+  "security": {
+    "findings": [],
+    "counts": {
+      "high": 0,
+      "medium": 0,
+      "info": 0
+    }
+  },
+  "service": {
+    "started": true,
+    "startup_s": 0.21,
+    "error": "service exited with code 1 before becoming ready (see service-baseline.log)",
+    "sandboxed": true
+  },
+  "changes": []
+}

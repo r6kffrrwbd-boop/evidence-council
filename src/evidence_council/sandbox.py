@@ -40,6 +40,8 @@ def _profile(workdir: str) -> str:
         f'(allow file-write* (subpath "{workdir}") (literal "/dev/null"))'
         f'(deny file-read* (subpath "{home}"))'
         f"(allow file-read* {reads})"
+        # stat/realpath on parent folders (e.g. a venv inside your home folder); never file contents
+        "(allow file-read-metadata)"
     )
 
 

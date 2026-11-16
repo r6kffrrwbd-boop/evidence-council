@@ -5,7 +5,7 @@ set -uo pipefail
 cd "$(dirname "$0")/.."
 PAT='(sk-ant-[A-Za-z0-9_-]{10,}|sk-(proj-|or-v1-)?[A-Za-z0-9_-]{20,}|xai-[A-Za-z0-9]{16,}|(ghp|gho|ghu|ghs|github_pat)_[A-Za-z0-9_]{16,}|AKIA[0-9A-Z]{16}|AIza[0-9A-Za-z_-]{30,}|xox[abprs]-[A-Za-z0-9-]{10,}|BEGIN [A-Z ]*PRIVATE KEY)'
 # fixtures intentionally contain fake tokens to test redaction; list them here
-ALLOW='tests/test_privacy.py|tests/test_provider_failure.py|scripts/scan_secrets.sh|src/evidence_council/util.py'
+ALLOW='tests/test_privacy.py|tests/test_agent_models.py|tests/test_agent_safety.py|tests/test_provider_failure.py|scripts/scan_secrets.sh|src/evidence_council/util.py'
 status=0
 echo "== working tree"
 git ls-files -z | xargs -0 grep -nIE "$PAT" 2>/dev/null | grep -vE "^($ALLOW):" && status=1

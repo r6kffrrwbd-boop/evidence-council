@@ -72,6 +72,8 @@ if [ "$SKILL" = 1 ]; then
   cp "$REPO/skill/SKILL.md" "$SKILL_DIR/SKILL.md"
   cp "$REPO"/docs/*.md "$SKILL_DIR/references/"
   cp -R "$REPO/examples/inputs" "$SKILL_DIR/examples/"
+  rm -rf "$SKILL_DIR/examples/agent-demo"
+  cp -R "$REPO/examples/agent-demo" "$SKILL_DIR/examples/agent-demo"
   cat > "$SKILL_DIR/bin/evidence-council" <<EOF
 #!/usr/bin/env bash
 exec "$LAUNCHER" "\$@"
@@ -98,6 +100,13 @@ say "provider availability (cheap checks, no prompts sent):"
 if [ "$PROBE" = 1 ]; then
   say "probing providers (one short prompt each):"
   "$LAUNCHER" providers --probe || true
+fi
+say "coding agent model providers (no request sent):"
+"$LAUNCHER" agent providers || true
+if command -v k6 >/dev/null 2>&1; then
+  say "k6 found: $(k6 version 2>/dev/null | head -1) (customer journeys enabled)"
+else
+  say "k6 not found: customer-journey checks will be reported as not run. Optional install: $REPO/scripts/install_k6.sh"
 fi
 if [ "$SELFTEST" = 1 ]; then
   say "offline self-test (mock providers):"

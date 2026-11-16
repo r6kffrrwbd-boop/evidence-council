@@ -1,0 +1,223 @@
+{
+  "schema": "ec-agent-plan/1",
+  "request": "When someone buys more than 10 of anything they should get 10% off, and it should show on the page. Also the checkout total feels slow.",
+  "project": {
+    "path": "<repo>/examples/agent-demo/tiny-shop",
+    "mode": "copy"
+  },
+  "items": [
+    {
+      "id": "R1",
+      "phrase": "When someone buys more than 10 of anything they should get 10% off",
+      "requirement": "When one cart line has 11 or more units of a product, take 10% off that line (rounded down to whole cents). Add tests test_bulk_discount_over_ten and test_no_discount_at_ten.",
+      "assumptions": [
+        "'more than 10' means 11 or more; exactly 10 units pay full price",
+        "the discount applies per product line, not to the whole cart",
+        "amounts stay in whole cents, rounding the discount down"
+      ],
+      "acceptance": {
+        "description": "12 mugs cost 10% less than full price, exactly 10 mugs cost full price, and the existing tests still pass.",
+        "checks": [
+          {
+            "type": "command",
+            "command_id": "unit-tests",
+            "expect_output": "test_bulk_discount_over_ten \\(.*\\) \\.\\.\\. ok"
+          },
+          {
+            "type": "command",
+            "command_id": "unit-tests",
+            "expect_output": "test_no_discount_at_ten \\(.*\\) \\.\\.\\. ok"
+          }
+        ]
+      }
+    },
+    {
+      "id": "R2",
+      "phrase": "it should show on the page",
+      "requirement": "The shop page shows '10% off' next to the total when the discount applies.",
+      "assumptions": [
+        "the label text is '10% off'",
+        "the label appears after the customer clicks Calculate"
+      ],
+      "acceptance": {
+        "description": "Maya enters 12 mugs, clicks Calculate and sees '10% off' in the total.",
+        "checks": [
+          {
+            "type": "journey",
+            "persona_id": "maya-bulk-buyer"
+          }
+        ]
+      }
+    },
+    {
+      "id": "R3",
+      "phrase": "the checkout total feels slow",
+      "requirement": "Make computing totals faster without changing any result; the price API must stay fast under light load.",
+      "assumptions": [
+        "'slow' means computing totals, measured by bench.py",
+        "5 simultaneous users is a reasonable light load"
+      ],
+      "acceptance": {
+        "description": "Totals are measurably faster, and with 5 users 95% of price requests answer within 200 ms.",
+        "checks": [
+          {
+            "type": "load",
+            "load_id": "checkout-load"
+          },
+          {
+            "type": "ai_judgment",
+            "question": "Does computing a cart total avoid re-reading the catalog file for every cart line?"
+          }
+        ]
+      }
+    }
+  ],
+  "commands": [
+    {
+      "id": "unit-tests",
+      "argv": [
+        "python3",
+        "-m",
+        "unittest",
+        "discover",
+        "-s",
+        "tests",
+        "-t",
+        ".",
+        "-v"
+      ],
+      "purpose": "run the project's unit tests",
+      "kind": "test",
+      "timeout_s": 60,
+      "network": "none",
+      "sandbox": true
+    },
+    {
+      "id": "bench",
+      "argv": [
+        "python3",
+        "bench.py"
+      ],
+      "purpose": "time 1000 cart totals (optimizer metric)",
+      "kind": "benchmark",
+      "timeout_s": 60,
+      "network": "none",
+      "sandbox": true
+    }
+  ],
+  "open_questions": [
+    "Should the discount also apply when 11+ units are spread over different products (e.g. 6 mugs + 5 caps)? This plan assumes no."
+  ],
+  "service": {
+    "argv": [
+      "python3",
+      "server.py",
+      "--port",
+      "{port}"
+    ],
+    "ready_path": "/health",
+    "startup_timeout_s": 15,
+    "sandbox": true
+  },
+  "personas": [
+    {
+      "id": "maya-bulk-buyer",
+      "name": "Maya, buys mugs in bulk for her cafe",
+      "description": "Opens the shop page, asks for 12 mugs and expects to see the bulk discount.",
+      "kind": "browser",
+      "steps": [
+        {
+          "action": "goto",
+          "path": "/",
+          "label": "1. open /",
+          "timeout_ms": 10000
+        },
+        {
+          "action": "fill",
+          "selector": "#qty",
+          "value": "12",
+          "label": "2. type '12' into #qty",
+          "timeout_ms": 10000
+        },
+        {
+          "action": "click",
+          "selector": "#calc",
+          "label": "3. click #calc",
+          "timeout_ms": 10000
+        },
+        {
+          "action": "expect_text",
+          "selector": "#total",
+          "contains": "10% off",
+          "label": "4. check #total shows '10% off'",
+          "timeout_ms": 10000
+        }
+      ],
+      "max_requests": 6,
+      "max_request_ms": 3000
+    },
+    {
+      "id": "api-shopper",
+      "name": "A checkout widget calling the price API",
+      "kind": "http",
+      "description": "Asks the price API for 12 mugs.",
+      "steps": [
+        {
+          "action": "request",
+          "method": "GET",
+          "path": "/api/total?sku=mug&qty=12",
+          "expect_status": 200,
+          "contains": "\"total\"",
+          "label": "1. GET /api/total?sku=mug&qty=12",
+          "timeout_ms": 10000
+        }
+      ],
+      "max_requests": 1,
+      "max_request_ms": 2000
+    }
+  ],
+  "load": [
+    {
+      "id": "checkout-load",
+      "persona_id": "api-shopper",
+      "vus": 5,
+      "duration_s": 8,
+      "p95_ms": 200,
+      "max_error_rate": 0.01
+    }
+  ],
+  "optimizer": {
+    "goal": "Make computing a cart total faster (the user said checkout feels slow)",
+    "metric": {
+      "command_id": "bench",
+      "regex": "ms_per_1000_carts=([0-9.]+)",
+      "name": "ms_per_1000_carts",
+      "direction": "lower",
+      "unit": "ms"
+    },
+    "min_improvement_pct": 20,
+    "runs": 3
+  },
+  "security": {
+    "enabled": true,
+    "probe_service": true
+  },
+  "limits": {
+    "max_model_calls": 30,
+    "max_tool_calls": 300,
+    "max_wall_s": 900,
+    "max_cost_usd": 0.5,
+    "max_builder_rounds": 3,
+    "max_optimizer_attempts": 2,
+    "max_turns_per_agent": 16,
+    "max_repeat_tool_calls": 2,
+    "command_timeout_s": 120
+  },
+  "data_notice": "Nothing leaves this machine: the scripted test model is used (no AI provider is called).",
+  "intake": {
+    "provider": "scripted",
+    "model": "scripted",
+    "at": "2026-11-16T12:57:38Z",
+    "cost_usd": 0.0046
+  }
+}

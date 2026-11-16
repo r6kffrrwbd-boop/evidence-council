@@ -16,6 +16,7 @@ EXIT_RECURSION = 5      # called from inside a council run
 EXIT_LESSON_REJECTED = 6  # candidate lesson failed acceptance checks
 EXIT_STAGE = 7          # stage tool given a state missing a prerequisite stage
 EXIT_PENDING = 8        # background job still running
+EXIT_AGENT_FAILED = 9   # agent run finished but a requirement failed, or it stopped early
 
 EXIT_CODES = {
     EXIT_OK: "ok",
@@ -27,6 +28,7 @@ EXIT_CODES = {
     EXIT_LESSON_REJECTED: "candidate lesson rejected by acceptance checks",
     EXIT_STAGE: "missing prerequisite stage",
     EXIT_PENDING: "background job still running",
+    EXIT_AGENT_FAILED: "agent run stopped early or a requirement failed its checks (see the report)",
 }
 
 

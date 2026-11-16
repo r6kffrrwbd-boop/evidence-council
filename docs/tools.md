@@ -37,6 +37,12 @@ Python equivalents (stable): `evidence_council.council.run_review(input_doc, con
 | `jobs result ID [--explain] [-o PATH]` | the result once finished (partial if cancelled) | — | result JSON or markdown | 0, 8 running, 2 unknown, job's code if failed |
 | `jobs cancel ID` | SIGINT → providers cancelled cleanly, partial result kept; SIGTERM after 10 s | — | `{cancel_requested, stopped}` | 0, 2 |
 | `jobs remove ID` | delete a finished job's directory | — | `{removed}` | 0, 2 |
+| `agent providers [--json]` | coding-agent model provider status (no request sent) | config | listing | 0 |
+| `agent intake --project DIR "request" [--setup F] [--plan-file F]` | checklist + `plan.json` in a new run folder; changes nothing, runs nothing | request, project | run folder, checklist | 0, 2 |
+| `agent show RUN` | checklist again; re-validates `plan.json`; approval state | run folder | text | 0, 2 |
+| `agent approve RUN [--confirm FP]` | approve the exact plan + persona scripts (typed `approve`, or the fingerprint after a person approved) | run folder | `approval.json` | 0, 2 |
+| `agent run RUN [--max-cost/--max-calls/--max-minutes]` | Builder → Evidence → Critic loop, Optimizer, Final evaluator on a copy/worktree | approved run folder | `report.json`, `report.md`, `changes.patch`, `events.jsonl` | 0, 2, 9 |
+| `agent report RUN [--json]` | print the evidence report | run folder | markdown or JSON | 0, 2 |
 | `selftest` | offline mock council must overturn a wrong majority | — | PASS/FAIL lines | 0, 1 |
 | `codes` | exit-code table | — | JSON | 0 |
 
@@ -69,6 +75,11 @@ Python equivalents (stable): `evidence_council.council.run_review(input_doc, con
 | `lesson memory integrity check failed` | the append-only log was edited; restore it or move it aside |
 | `job … is still running` (exit 8) | fetch again later; `jobs status` shows elapsed time |
 | `no such job` / `not a job id` | `evidence-council jobs list` (jobs live under `--home`) |
+| `this plan has not been approved, so nothing will run` | review the checklist; `evidence-council agent approve RUN` |
+| `plan.json or a persona script changed after it was approved` | re-read the changed checklist and approve again |
+| `the plan breaks a safety rule` | each listed line names the command or field; edit `plan.json` (see [agent.md](agent.md)) |
+| `the gemini model is not ready: environment variable GEMINI_API_KEY is not set` | `export GEMINI_API_KEY=...` in the shell that runs the agent |
+| `this plan was approved for provider 'X' but the run would use 'Y'` | run with the same provider, or start a new intake |
 
 Jobs are stored in `<home>/jobs/<job-id>/` (owner-only permissions) with `task.json` (a copy of
 your input — same sensitivity), `meta.json`, `log.txt`, `result.json`, `status.json`. Remove finished

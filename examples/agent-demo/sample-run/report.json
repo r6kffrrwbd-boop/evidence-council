@@ -1,0 +1,312 @@
+{
+  "schema": "ec-agent-report/1",
+  "run_id": "agent-20261116T125738Z-8f7820",
+  "request": "When someone buys more than 10 of anything they should get 10% off, and it should show on the page. Also the checkout total feels slow.",
+  "project": "<repo>/examples/agent-demo/tiny-shop",
+  "mode": "copy",
+  "provider": {
+    "provider": "scripted",
+    "model": "scripted"
+  },
+  "approval": {
+    "approved_at": "2026-11-16T12:57:38Z",
+    "fingerprint": "sha256:590b5d6a163249de032fb793bf05710a4e7cdcb0791d7678388fccb7000c0748"
+  },
+  "started_at": "2026-11-16T12:57:39Z",
+  "outcome": "completed",
+  "stop_reason": "",
+  "rounds": [
+    {
+      "round": 1,
+      "builder_summary": "Added a 10% per-line bulk discount with a '10% off' label, and two tests.",
+      "builder_claims": [
+        "Lines with more than 10 units get 10% off",
+        "The page shows '10% off' when the discount applies"
+      ],
+      "files_written": [
+        "shop.py",
+        "tests/test_bulk_discount.py"
+      ],
+      "gate_reasons": [
+        "R1: command `unit-tests` must exit 0 and its output must match `test_bulk_discount_over_ten \\(.*\\) \\.\\.\\. ok` — exit code 1, expected 0",
+        "R1: command `unit-tests` must exit 0 and its output must match `test_no_discount_at_ten \\(.*\\) \\.\\.\\. ok` — exit code 1, expected 0",
+        "regression: command unit-tests passed before the change and is now failed"
+      ],
+      "critic": {
+        "verdict": "return",
+        "defects": [
+          {
+            "requirement_id": "R1",
+            "file": "shop.py",
+            "line": 26,
+            "severity": "major",
+            "problem": "Exactly 10 units get the discount, but the approved requirement is 11 or more ('more than 10').",
+            "evidence": "diff: '+        if qty >= 10:'; test output: test_no_discount_at_ten ... FAIL",
+            "fix": "Change the condition to qty > 10."
+          }
+        ]
+      },
+      "returned": true
+    },
+    {
+      "round": 2,
+      "builder_summary": "Changed the discount condition to qty > 10.",
+      "builder_claims": [
+        "Exactly 10 units pay full price; 11 or more get 10% off"
+      ],
+      "files_written": [
+        "shop.py"
+      ],
+      "gate_reasons": [],
+      "critic": {
+        "verdict": "pass",
+        "defects": [
+          {
+            "requirement_id": "R3",
+            "file": "shop.py",
+            "severity": "minor",
+            "problem": "cart_total calls price_of twice per discounted line, which re-reads the catalog again.",
+            "evidence": "diff: '+            discount += price_of(sku) * qty // 10'",
+            "fix": "Compute each line's price once and reuse it."
+          }
+        ]
+      },
+      "returned": false
+    }
+  ],
+  "optimizer": {
+    "goal": "Make computing a cart total faster (the user said checkout feels slow)",
+    "metric_name": "ms_per_1000_carts",
+    "unit": "ms",
+    "direction": "lower",
+    "min_improvement_pct": 20,
+    "runs": 3,
+    "attempts": [
+      {
+        "attempt": 1,
+        "summary": "Cache the looked-up price in a module variable.",
+        "files_written": [
+          "shop.py"
+        ],
+        "before": 2219.64,
+        "after": null,
+        "improvement_pct": null,
+        "gate_reasons": [
+          "R1: command `unit-tests` must exit 0 and its output must match `test_bulk_discount_over_ten \\(.*\\) \\.\\.\\. ok` — exit code 1, expected 0",
+          "R1: command `unit-tests` must exit 0 and its output must match `test_no_discount_at_ten \\(.*\\) \\.\\.\\. ok` — exit code 1, expected 0",
+          "regression: command unit-tests passed before the change and is now failed",
+          "regression: test tests.test_shop.CartTotalTests.test_two_lines passed before and now reports FAIL",
+          "regression: test tests.test_shop.CartTotalTests.test_unknown_product_rejected passed before and now reports FAIL"
+        ],
+        "result": "rolled back (5 failing check(s) or regression(s), first: R1: command `unit-tests` must exit 0 and its output must match `test_bulk_discount_over_ten \\(.*\\) \\.\\.\\. ok` — exit code 1, expected 0)",
+        "kept": false,
+        "restored_files": [
+          "shop.py"
+        ]
+      },
+      {
+        "attempt": 2,
+        "summary": "Read and parse catalog.json once per process (functools.lru_cache) instead of once per cart line.",
+        "files_written": [
+          "shop.py"
+        ],
+        "before": 2219.64,
+        "after": 2.47,
+        "improvement_pct": 99.8887206934458,
+        "gate_reasons": [],
+        "result": "kept: 99.9% better",
+        "kept": true
+      }
+    ],
+    "start_value": 2219.64,
+    "final_value": 2.47
+  },
+  "repeated_work": [],
+  "notes": [],
+  "workspace": "~/.local/share/evidence-council/agent-runs/agent-20261116T125738Z-8f7820/workspace",
+  "requirements": [
+    {
+      "id": "R1",
+      "phrase": "When someone buys more than 10 of anything they should get 10% off",
+      "requirement": "When one cart line has 11 or more units of a product, take 10% off that line (rounded down to whole cents). Add tests test_bulk_discount_over_ten and test_no_discount_at_ten.",
+      "assumptions": [
+        "'more than 10' means 11 or more; exactly 10 units pay full price",
+        "the discount applies per product line, not to the whole cart",
+        "amounts stay in whole cents, rounding the discount down"
+      ],
+      "checks": [
+        {
+          "type": "command",
+          "description": "command `unit-tests` must exit 0 and its output must match `test_bulk_discount_over_ten \\(.*\\) \\.\\.\\. ok`",
+          "status": "passed",
+          "detail": "exit 0; output matched: 'test_bulk_discount_over_ten (tests.test_bulk_discount.BulkDiscountTests.test_bulk_discount_over_ten) ... ok'",
+          "basis": "verified",
+          "baseline_status": "failed"
+        },
+        {
+          "type": "command",
+          "description": "command `unit-tests` must exit 0 and its output must match `test_no_discount_at_ten \\(.*\\) \\.\\.\\. ok`",
+          "status": "passed",
+          "detail": "exit 0; output matched: 'test_no_discount_at_ten (tests.test_bulk_discount.BulkDiscountTests.test_no_discount_at_ten) ... ok'",
+          "basis": "verified",
+          "baseline_status": "failed"
+        }
+      ],
+      "status": "verified"
+    },
+    {
+      "id": "R2",
+      "phrase": "it should show on the page",
+      "requirement": "The shop page shows '10% off' next to the total when the discount applies.",
+      "assumptions": [
+        "the label text is '10% off'",
+        "the label appears after the customer clicks Calculate"
+      ],
+      "checks": [
+        {
+          "type": "journey",
+          "description": "customer journey `maya-bulk-buyer` (Maya, buys mugs in bulk for her cafe) must pass every step",
+          "status": "passed",
+          "detail": "all steps passed",
+          "basis": "verified",
+          "baseline_status": "failed"
+        }
+      ],
+      "status": "verified"
+    },
+    {
+      "id": "R3",
+      "phrase": "the checkout total feels slow",
+      "requirement": "Make computing totals faster without changing any result; the price API must stay fast under light load.",
+      "assumptions": [
+        "'slow' means computing totals, measured by bench.py",
+        "5 simultaneous users is a reasonable light load"
+      ],
+      "checks": [
+        {
+          "type": "load",
+          "description": "load test `checkout-load`: 5 users for 8s, p95 under 200 ms, errors under 1%",
+          "status": "passed",
+          "detail": "all steps passed",
+          "basis": "verified",
+          "baseline_status": "passed"
+        },
+        {
+          "type": "ai_judgment",
+          "description": "AI reviewer answers: \"Does computing a cart total avoid re-reading the catalog file for every cart line?\"",
+          "status": "appears_met",
+          "detail": "load_catalog is wrapped in functools.lru_cache(maxsize=1), so catalog.json is parsed once per process rather than per cart line. (cites shop.py:10-13)",
+          "basis": "ai_judgment",
+          "question": "Does computing a cart total avoid re-reading the catalog file for every cart line?"
+        }
+      ],
+      "status": "ai_judgment"
+    }
+  ],
+  "counts": {
+    "verified": 2,
+    "failed": 0,
+    "ai_judgment": 1,
+    "untested": 0
+  },
+  "changes": [
+    {
+      "path": "shop.py",
+      "status": "modified",
+      "added": 6,
+      "removed": 1
+    },
+    {
+      "path": "tests/test_bulk_discount.py",
+      "status": "added",
+      "added": 20,
+      "removed": 0
+    }
+  ],
+  "changed_paths": [
+    "shop.py",
+    "tests/test_bulk_discount.py"
+  ],
+  "patch_file": "~/.local/share/evidence-council/agent-runs/agent-20261116T125738Z-8f7820/changes.patch",
+  "regressions": [],
+  "security": {
+    "findings": [],
+    "counts": {
+      "high": 0,
+      "medium": 0,
+      "info": 0
+    }
+  },
+  "journeys": {
+    "maya-bulk-buyer": {
+      "status": "passed",
+      "reasons": []
+    },
+    "api-shopper": {
+      "status": "passed",
+      "reasons": []
+    }
+  },
+  "load": {
+    "checkout-load": {
+      "status": "passed",
+      "reasons": [],
+      "p95_ms": 5.601,
+      "requests": 7202
+    }
+  },
+  "untested_claims": [
+    "Exactly 10 units pay full price; 11 or more get 10% off"
+  ],
+  "critic_minor": [
+    {
+      "requirement_id": "R3",
+      "file": "shop.py",
+      "severity": "minor",
+      "problem": "cart_total calls price_of twice per discounted line, which re-reads the catalog again.",
+      "evidence": "diff: '+            discount += price_of(sku) * qty // 10'",
+      "fix": "Compute each line's price once and reuse it."
+    }
+  ],
+  "budget": {
+    "spent_usd": 0.019535,
+    "max_cost_usd": 0.5,
+    "model_calls": 14,
+    "max_model_calls": 30,
+    "tool_calls": 17,
+    "elapsed_s": 84.3,
+    "max_wall_s": 900,
+    "input_tokens": 51700,
+    "output_tokens": 1610,
+    "reasoning_tokens": 0
+  },
+  "finished_at": "2026-11-16T12:59:03Z",
+  "evidence_files": [
+    "~/.local/share/evidence-council/agent-runs/agent-20261116T125738Z-8f7820/evidence/baseline.json",
+    "~/.local/share/evidence-council/agent-runs/agent-20261116T125738Z-8f7820/evidence/optimizer-1.json",
+    "~/.local/share/evidence-council/agent-runs/agent-20261116T125738Z-8f7820/evidence/optimizer-2.json",
+    "~/.local/share/evidence-council/agent-runs/agent-20261116T125738Z-8f7820/evidence/round-1.json",
+    "~/.local/share/evidence-council/agent-runs/agent-20261116T125738Z-8f7820/evidence/round-2.json"
+  ],
+  "lessons": {
+    "retained": [
+      {
+        "lesson_id": "lesson-004cc08bc7c0ccab",
+        "statement": "In project 'tiny-shop', requirement R1 (When one cart line has 11 or more units of a product, take 10% off that line (rounded down to whole cents)) was met by changing shop.py, tests/test_bulk_discount.py; 2 approved check(s) failed before the change and passed after it.",
+        "memory_version": 1
+      },
+      {
+        "lesson_id": "lesson-134549ff97209685",
+        "statement": "In project 'tiny-shop', requirement R2 (The shop page shows '10% off' next to the total when the discount applies) was met by changing shop.py, tests/test_bulk_discount.py; 1 approved check(s) failed before the change and passed after it.",
+        "memory_version": 2
+      },
+      {
+        "lesson_id": "lesson-375f5828f858df1a",
+        "statement": "In project 'tiny-shop', the change to shop.py moved ms_per_1000_carts from 2220 to 2.47 ms (median of 3 runs, 99.9% better) with every approved check passing.",
+        "memory_version": 3
+      }
+    ],
+    "rejected": [],
+    "memory": "~/.local/share/evidence-council/memory/agent/lessons.jsonl"
+  }
+}

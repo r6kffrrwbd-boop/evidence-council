@@ -82,6 +82,32 @@ checked against timestamped observations with nothing sent to any model
 Files in `examples/outputs/` were produced with **mock** providers; real runs are in
 [`examples/real-runs/`](examples/real-runs/).
 
+## Coding agent
+
+`evidence-council agent` turns a plain-language request into a checklist you approve, then changes a **copy** of
+your project (or a new git branch), proves each requirement with the commands, k6 customer journeys and light load
+tests you approved, and reports verified results, AI judgments and untested claims separately.
+
+```bash
+export GEMINI_API_KEY=...                         # from Google AI Studio; never put it in a file in your repo
+evidence-council agent providers                  # is the model ready? (sends nothing)
+evidence-council agent intake --project ~/code/shop "people who buy more than 10 should get 10% off"
+evidence-council agent approve RUN_DIR            # read the checklist, type 'approve'
+evidence-council agent run RUN_DIR                # Builder -> Evidence -> Critic (loop) -> Optimizer -> Evaluator
+```
+
+Nothing is deployed, committed or pushed; commands outside the approved plan never run; spend, model calls and
+time are capped. Try it without an API key on the synthetic demo (scripted test model, not AI):
+
+```bash
+evidence-council agent intake --project examples/agent-demo/tiny-shop --request-file examples/agent-demo/request.txt \
+  --setup examples/agent-demo/setup.json --script examples/agent-demo/scripted-run.json
+```
+
+A full sample run (console output, report, patch, k6 scripts) is in
+[`examples/agent-demo/sample-run/`](examples/agent-demo/sample-run/). Details: [docs/agent.md](docs/agent.md).
+k6 is optional (`scripts/install_k6.sh` installs the official release after checking its SHA-256).
+
 ## JSON contract
 
 Stable, versioned (`schema_version: "1.0"`), shipped as JSON Schema: `evidence-council schema input|output|lesson`.
@@ -112,6 +138,7 @@ See [docs/providers.md](docs/providers.md) for the capability table **as verifie
 pip install -r requirements-dev.lock && pip install -e .
 pytest                         # deterministic, offline, mock providers only
 EC_REAL=1 pytest -m real -s    # REAL providers on this machine (opt-in)
+# agent tests run the real pipeline with a scripted model; k6 tests run when k6 is installed
 scripts/run_real_e2e.sh        # REAL runs; writes examples/real-runs/
 ```
 

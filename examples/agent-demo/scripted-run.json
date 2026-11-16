@@ -1,0 +1,443 @@
+{
+ "_comment": "Scripted test model for the tiny-shop demo. This is a fixture, not AI output: every turn is written by hand to exercise the workflow (a failed round, a critic return, an optimizer rollback, a kept optimization).",
+ "pricing": {
+  "input": 0.3,
+  "output": 2.5
+ },
+ "intake": [
+  {
+   "text": "Looking at the project layout and its tests.",
+   "tool_calls": [
+    {
+     "name": "list_files",
+     "args": {}
+    }
+   ],
+   "usage": {
+    "input_tokens": 1800,
+    "output_tokens": 60
+   }
+  },
+  {
+   "text": "",
+   "tool_calls": [
+    {
+     "name": "read_file",
+     "args": {
+      "path": "tests/test_shop.py"
+     }
+    }
+   ],
+   "usage": {
+    "input_tokens": 2300,
+    "output_tokens": 40
+   }
+  },
+  {
+   "text": "Here is the checklist.",
+   "tool_calls": [
+    {
+     "name": "submit_plan",
+     "args": {
+      "items": [
+       {
+        "id": "R1",
+        "phrase": "When someone buys more than 10 of anything they should get 10% off",
+        "requirement": "When one cart line has 11 or more units of a product, take 10% off that line (rounded down to whole cents). Add tests test_bulk_discount_over_ten and test_no_discount_at_ten.",
+        "assumptions": [
+         "'more than 10' means 11 or more; exactly 10 units pay full price",
+         "the discount applies per product line, not to the whole cart",
+         "amounts stay in whole cents, rounding the discount down"
+        ],
+        "acceptance": {
+         "description": "12 mugs cost 10% less than full price, exactly 10 mugs cost full price, and the existing tests still pass.",
+         "checks": [
+          {
+           "type": "command",
+           "command_id": "unit-tests",
+           "expect_output": "test_bulk_discount_over_ten \\(.*\\) \\.\\.\\. ok"
+          },
+          {
+           "type": "command",
+           "command_id": "unit-tests",
+           "expect_output": "test_no_discount_at_ten \\(.*\\) \\.\\.\\. ok"
+          }
+         ]
+        }
+       },
+       {
+        "id": "R2",
+        "phrase": "it should show on the page",
+        "requirement": "The shop page shows '10% off' next to the total when the discount applies.",
+        "assumptions": [
+         "the label text is '10% off'",
+         "the label appears after the customer clicks Calculate"
+        ],
+        "acceptance": {
+         "description": "Maya enters 12 mugs, clicks Calculate and sees '10% off' in the total.",
+         "checks": [
+          {
+           "type": "journey",
+           "persona_id": "maya-bulk-buyer"
+          }
+         ]
+        }
+       },
+       {
+        "id": "R3",
+        "phrase": "the checkout total feels slow",
+        "requirement": "Make computing totals faster without changing any result; the price API must stay fast under light load.",
+        "assumptions": [
+         "'slow' means computing totals, measured by bench.py",
+         "5 simultaneous users is a reasonable light load"
+        ],
+        "acceptance": {
+         "description": "Totals are measurably faster, and with 5 users 95% of price requests answer within 200 ms.",
+         "checks": [
+          {
+           "type": "load",
+           "load_id": "checkout-load"
+          },
+          {
+           "type": "ai_judgment",
+           "question": "Does computing a cart total avoid re-reading the catalog file for every cart line?"
+          }
+         ]
+        }
+       }
+      ],
+      "commands": [
+       {
+        "id": "unit-tests",
+        "argv": [
+         "python3",
+         "-m",
+         "unittest",
+         "discover",
+         "-s",
+         "tests",
+         "-t",
+         ".",
+         "-v"
+        ],
+        "purpose": "run the project's unit tests",
+        "kind": "test",
+        "timeout_s": 60
+       },
+       {
+        "id": "bench",
+        "argv": [
+         "python3",
+         "bench.py"
+        ],
+        "purpose": "time 1000 cart totals (optimizer metric)",
+        "kind": "benchmark",
+        "timeout_s": 60
+       }
+      ],
+      "open_questions": [
+       "Should the discount also apply when 11+ units are spread over different products (e.g. 6 mugs + 5 caps)? This plan assumes no."
+      ]
+     }
+    }
+   ],
+   "usage": {
+    "input_tokens": 2900,
+    "output_tokens": 900
+   }
+  }
+ ],
+ "builder": [
+  {
+   "text": "I'll read the pricing code first.",
+   "tool_calls": [
+    {
+     "name": "read_file",
+     "args": {
+      "path": "shop.py"
+     }
+    }
+   ],
+   "usage": {
+    "input_tokens": 3000,
+    "output_tokens": 50
+   }
+  },
+  {
+   "text": "Adding the per-line bulk discount, the label, and tests for it.",
+   "tool_calls": [
+    {
+     "name": "replace_in_file",
+     "args": {
+      "path": "shop.py",
+      "old": "    discount = 0\n",
+      "new": "    discount = 0\n    for sku, qty in lines:\n        if qty >= 10:\n            discount += price_of(sku) * qty // 10\n"
+     }
+    },
+    {
+     "name": "replace_in_file",
+     "args": {
+      "path": "shop.py",
+      "old": "\"label\": \"\"}",
+      "new": "\"label\": \"10% off\" if discount else \"\"}"
+     }
+    },
+    {
+     "name": "write_file",
+     "args": {
+      "path": "tests/test_bulk_discount.py",
+      "content": "import unittest\n\nfrom shop import cart_total\n\n\nclass BulkDiscountTests(unittest.TestCase):\n    def test_bulk_discount_over_ten(self):\n        result = cart_total([(\"mug\", 12)])\n        self.assertEqual(result[\"discount\"], 1440)\n        self.assertEqual(result[\"total\"], 12960)\n        self.assertEqual(result[\"label\"], \"10% off\")\n\n    def test_no_discount_at_ten(self):\n        result = cart_total([(\"mug\", 10)])\n        self.assertEqual(result[\"discount\"], 0)\n        self.assertEqual(result[\"total\"], 12000)\n\n\nif __name__ == \"__main__\":\n    unittest.main()\n"
+     }
+    }
+   ],
+   "usage": {
+    "input_tokens": 3600,
+    "output_tokens": 400
+   }
+  },
+  {
+   "text": "Done.",
+   "tool_calls": [
+    {
+     "name": "finish_changes",
+     "args": {
+      "summary": "Added a 10% per-line bulk discount with a '10% off' label, and two tests.",
+      "files_changed": [
+       "shop.py",
+       "tests/test_bulk_discount.py"
+      ],
+      "claims": [
+       "Lines with more than 10 units get 10% off",
+       "The page shows '10% off' when the discount applies"
+      ]
+     }
+    }
+   ],
+   "usage": {
+    "input_tokens": 3900,
+    "output_tokens": 120
+   }
+  },
+  {
+   "text": "Fixing the boundary: only 11 or more units qualify.",
+   "tool_calls": [
+    {
+     "name": "replace_in_file",
+     "args": {
+      "path": "shop.py",
+      "old": "        if qty >= 10:",
+      "new": "        if qty > 10:"
+     }
+    }
+   ],
+   "usage": {
+    "input_tokens": 4200,
+    "output_tokens": 80
+   }
+  },
+  {
+   "text": "",
+   "tool_calls": [
+    {
+     "name": "finish_changes",
+     "args": {
+      "summary": "Changed the discount condition to qty > 10.",
+      "files_changed": [
+       "shop.py"
+      ],
+      "claims": [
+       "Exactly 10 units pay full price; 11 or more get 10% off"
+      ]
+     }
+    }
+   ],
+   "usage": {
+    "input_tokens": 4400,
+    "output_tokens": 60
+   }
+  }
+ ],
+ "critic": [
+  {
+   "text": "The boundary is wrong.",
+   "tool_calls": [
+    {
+     "name": "submit_review",
+     "args": {
+      "verdict": "return",
+      "defects": [
+       {
+        "requirement_id": "R1",
+        "file": "shop.py",
+        "line": 26,
+        "severity": "major",
+        "problem": "Exactly 10 units get the discount, but the approved requirement is 11 or more ('more than 10').",
+        "evidence": "diff: '+        if qty >= 10:'; test output: test_no_discount_at_ten ... FAIL",
+        "fix": "Change the condition to qty > 10."
+       }
+      ]
+     }
+    }
+   ],
+   "usage": {
+    "input_tokens": 5200,
+    "output_tokens": 220
+   }
+  },
+  {
+   "text": "The change now matches the requirements.",
+   "tool_calls": [
+    {
+     "name": "submit_review",
+     "args": {
+      "verdict": "pass",
+      "defects": [
+       {
+        "requirement_id": "R3",
+        "file": "shop.py",
+        "severity": "minor",
+        "problem": "cart_total calls price_of twice per discounted line, which re-reads the catalog again.",
+        "evidence": "diff: '+            discount += price_of(sku) * qty // 10'",
+        "fix": "Compute each line's price once and reuse it."
+       }
+      ]
+     }
+    }
+   ],
+   "usage": {
+    "input_tokens": 5400,
+    "output_tokens": 160
+   }
+  }
+ ],
+ "optimizer": [
+  {
+   "text": "Reading the current code.",
+   "tool_calls": [
+    {
+     "name": "read_file",
+     "args": {
+      "path": "shop.py"
+     }
+    }
+   ],
+   "usage": {
+    "input_tokens": 3000,
+    "output_tokens": 40
+   }
+  },
+  {
+   "text": "Trying to remember the last price instead of reloading the catalog.",
+   "tool_calls": [
+    {
+     "name": "replace_in_file",
+     "args": {
+      "path": "shop.py",
+      "old": "def price_of(sku):\n    # Looks up one product's price in cents.\n    return load_catalog()[sku][\"price\"]\n",
+      "new": "_LAST_PRICE = None\n\n\ndef price_of(sku):\n    # Looks up one product's price in cents.\n    global _LAST_PRICE\n    if _LAST_PRICE is None:\n        _LAST_PRICE = load_catalog()[sku][\"price\"]\n    return _LAST_PRICE\n"
+     }
+    }
+   ],
+   "usage": {
+    "input_tokens": 3300,
+    "output_tokens": 160
+   }
+  },
+  {
+   "text": "",
+   "tool_calls": [
+    {
+     "name": "finish_changes",
+     "args": {
+      "summary": "Cache the looked-up price in a module variable."
+     }
+    }
+   ],
+   "usage": {
+    "input_tokens": 3400,
+    "output_tokens": 40
+   }
+  },
+  {
+   "text": "Caching the parsed catalog instead, keyed by nothing else.",
+   "tool_calls": [
+    {
+     "name": "replace_in_file",
+     "args": {
+      "path": "shop.py",
+      "old": "import json\n",
+      "new": "import functools\nimport json\n"
+     }
+    },
+    {
+     "name": "replace_in_file",
+     "args": {
+      "path": "shop.py",
+      "old": "def load_catalog():\n",
+      "new": "@functools.lru_cache(maxsize=1)\ndef load_catalog():\n"
+     }
+    }
+   ],
+   "usage": {
+    "input_tokens": 3500,
+    "output_tokens": 120
+   }
+  },
+  {
+   "text": "",
+   "tool_calls": [
+    {
+     "name": "finish_changes",
+     "args": {
+      "summary": "Read and parse catalog.json once per process (functools.lru_cache) instead of once per cart line."
+     }
+    }
+   ],
+   "usage": {
+    "input_tokens": 3600,
+    "output_tokens": 40
+   }
+  }
+ ],
+ "evaluator": [
+  {
+   "text": "",
+   "tool_calls": [
+    {
+     "name": "read_file",
+     "args": {
+      "path": "shop.py"
+     }
+    }
+   ],
+   "usage": {
+    "input_tokens": 2500,
+    "output_tokens": 30
+   }
+  },
+  {
+   "text": "",
+   "tool_calls": [
+    {
+     "name": "submit_judgments",
+     "args": {
+      "judgments": [
+       {
+        "requirement_id": "R3",
+        "judgment": "appears_met",
+        "reason": "load_catalog is wrapped in functools.lru_cache(maxsize=1), so catalog.json is parsed once per process rather than per cart line.",
+        "cites": [
+         "shop.py:10-13"
+        ]
+       }
+      ]
+     }
+    }
+   ],
+   "usage": {
+    "input_tokens": 2700,
+    "output_tokens": 90
+   }
+  }
+ ]
+}

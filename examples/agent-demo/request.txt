@@ -1,0 +1,1 @@
+When someone buys more than 10 of anything they should get 10% off, and it should show on the page. Also the checkout total feels slow.

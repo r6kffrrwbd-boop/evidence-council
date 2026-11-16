@@ -188,6 +188,7 @@ def build_parser() -> argparse.ArgumentParser:
               schema     print the input/output/lesson JSON Schema
               lessons    list / check / accept / retire learned lessons
               jobs       background reviews (review --async): list / status / result / cancel / remove
+              agent      evidence-checked coding agent: intake -> approve -> run -> report
               selftest   offline end-to-end check with mock providers
               codes      list exit codes
 
@@ -276,6 +277,8 @@ def build_parser() -> argparse.ArgumentParser:
 
     add("selftest", "Offline self-test with mock providers.")
     add("codes", "List exit codes.")
+    from .agent.cli import add_agent_parser
+    add_agent_parser(sub, _common)
     return ap
 
 
@@ -589,6 +592,7 @@ def cmd_codes(args) -> int:
 COMMANDS = {"review": cmd_review, "propose": cmd_stage, "compare": cmd_stage, "verify": cmd_stage, "verdict": cmd_stage,
             "explain": cmd_explain, "providers": cmd_providers, "privacy": cmd_privacy, "validate": cmd_validate,
             "schema": cmd_schema, "lessons": cmd_lessons, "selftest": cmd_selftest, "codes": cmd_codes,
+            "agent": lambda a: __import__("evidence_council.agent.cli", fromlist=["cmd_agent"]).cmd_agent(a, _cfg),
             "jobs": cmd_jobs}
 
 
